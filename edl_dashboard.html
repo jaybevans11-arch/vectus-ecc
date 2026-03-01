@@ -1,0 +1,3561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jayvin Bevans — Estimator Command</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     DESIGN SYSTEM — Cream + Deep Navy + Orange Accent
+     Cormorant Garamond (ultra-slim display) + DM Sans (body) + JetBrains Mono
+  ═══════════════════════════════════════════════════════════════ */
+  :root {
+    --bg: #070d12;
+    --bg2: #0a1520;
+    --surface: #0d1e2e;
+    --surface2: #112535;
+    --border: #1a3a52;
+    --border-bright: #2a4a6a;
+    --border-glow: rgba(0,128,255,0.3);
+    --border-mid: #1a3a52;
+    --accent: #0080ff;
+    --accent-bright: #3399ff;
+    --accent2: #00ccff;
+    --accent3: #00e5a0;
+    --danger: #ff4466;
+    --warn: #ffaa00;
+    --text: #ffffff;
+    --text-body: #ffffff;
+    --muted: #8aabcc;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Space Grotesk', sans-serif;
+    --glow: 0 0 20px rgba(0,128,255,0.15);
+    --glow-strong: 0 0 30px rgba(0,128,255,0.3);
+    --radius: 6px;
+    --radius-lg: 10px;
+    --orange: #ff8800;
+    --sidebar-text: #ffffff;
+    --sidebar-muted: #8aabcc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* Paper texture overlay — subtle, no bubbles */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LOGIN ──────────────────────────────────────────────────── */
+  .login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; background: var(--sidebar);
+  }
+  .login-box {
+    background: #162130; border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px; padding: 52px 48px; width: 100%; max-width: 380px;
+    text-align: center;
+  }
+  .login-logo {
+    font-family: var(--display); font-size: 34px; font-weight: 400;
+    color: #EDE8DC; margin-bottom: 2px; letter-spacing: 0.5px; font-style: italic;
+  }
+  .login-logo span { color: var(--orange); font-style: normal; }
+  .login-tagline {
+    font-size: 10px; font-family: var(--body); color: rgba(200,190,175,0.5);
+    letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; font-weight: 400;
+  }
+  .login-sub { color: rgba(200,190,175,0.4); font-size: 12px; margin-bottom: 32px; }
+  .login-divider {
+    height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 28px;
+  }
+  .login-input {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: #EDE8DC; border-radius: var(--radius); padding: 13px 14px;
+    font-family: var(--mono); font-size: 14px; outline: none;
+    margin-bottom: 12px; text-align: center; letter-spacing: 4px;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: var(--orange); }
+  .login-btn {
+    width: 100%; background: var(--orange); color: #fff; border: none;
+    border-radius: var(--radius); padding: 13px; font-size: 11px; font-weight: 600;
+    cursor: pointer; font-family: var(--body); letter-spacing: 2px;
+    text-transform: uppercase; transition: opacity 0.2s;
+  }
+  .login-btn:hover { opacity: 0.88; }
+  .login-error {
+    color: var(--danger); font-size: 11px; font-family: var(--mono);
+    margin-top: 10px; min-height: 18px;
+  }
+
+  /* ── LAYOUT ─────────────────────────────────────────────────── */
+  .shell {
+    display: grid; grid-template-columns: 240px 1fr;
+    grid-template-rows: auto 1fr; min-height: 100vh;
+  }
+  .topbar {
+    grid-column: 1/-1; background: var(--sidebar);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0 28px; display: flex; align-items: center;
+    justify-content: space-between; height: 54px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .sidebar {
+    background: var(--sidebar); padding: 24px 0;
+    position: sticky; top: 54px; height: calc(100vh - 54px); overflow-y: auto;
+    border-right: none;
+  }
+  .main { padding: 36px 40px; overflow-y: auto; background: var(--bg); position: relative; z-index: 1; }
+
+  /* ── TOPBAR ─────────────────────────────────────────────────── */
+  .logo {
+    font-family: var(--display); font-weight: 400; font-size: 22px;
+    color: #EDE8DC; font-style: italic; letter-spacing: 0.5px;
+  }
+  .logo span {
+    color: rgba(200,190,175,0.45); font-weight: 300; font-size: 11px;
+    letter-spacing: 1.5px; font-family: var(--body); font-style: normal;
+    text-transform: uppercase;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .date-chip {
+    font-family: var(--mono); font-size: 11px; color: rgba(200,190,175,0.45);
+    border: 1px solid rgba(255,255,255,0.08); padding: 5px 12px; border-radius: 20px;
+  }
+  .capacity-bar-wrap {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-family: var(--mono); color: rgba(200,190,175,0.5);
+  }
+  .capacity-bar {
+    width: 90px; height: 3px; background: rgba(255,255,255,0.10); border-radius: 2px; overflow: hidden;
+  }
+  .capacity-fill {
+    height: 100%; border-radius: 2px; background: var(--accent3); transition: width 0.5s ease;
+  }
+  .capacity-fill.warn { background: var(--warn); }
+  .capacity-fill.danger { background: var(--danger); }
+  .sync-status {
+    font-size: 11px; font-family: var(--mono); color: rgba(200,190,175,0.4); transition: all 0.3s;
+  }
+
+  /* ── SIDEBAR ────────────────────────────────────────────────── */
+  .sidebar-section {
+    padding: 8px 22px 4px; font-size: 9px; font-family: var(--body);
+    color: rgba(200,190,175,0.35); letter-spacing: 2.5px; text-transform: uppercase; font-weight: 500;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 22px; cursor: pointer; font-size: 13px;
+    color: rgba(230,225,215,0.65); transition: all 0.12s;
+    border-left: 2px solid transparent;
+    border-radius: 0 6px 6px 0; margin: 1px 10px 1px 0;
+    font-weight: 400;
+  }
+  .sidebar-item:hover { background: rgba(255,255,255,0.05); color: #EDE8DC; }
+  .sidebar-item.active {
+    background: rgba(255,255,255,0.07); color: #EDE8DC;
+    border-left-color: var(--orange);
+  }
+  .sidebar-item .icon { font-size: 14px; opacity: 0.85; }
+  .badge {
+    margin-left: auto; background: var(--orange); color: white;
+    font-size: 9px; font-family: var(--mono); padding: 2px 7px;
+    border-radius: 3px; font-weight: 500;
+  }
+  .badge.warn { background: var(--warn); }
+  .badge.ok { background: var(--accent3); color: #fff; }
+  .sidebar-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 14px 20px; }
+
+  /* ── VIEWS ──────────────────────────────────────────────────── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── SECTION HEADERS ────────────────────────────────────────── */
+  .section-header { margin-bottom: 28px; }
+  .section-title {
+    font-family: var(--display); font-size: 38px; font-weight: 300;
+    letter-spacing: -0.5px; color: var(--text); line-height: 1; font-style: italic;
+  }
+  .section-sub {
+    color: var(--muted); font-size: 12px; font-family: var(--body);
+    margin-top: 4px; letter-spacing: 0.3px;
+  }
+
+  /* ── STAT CARDS ─────────────────────────────────────────────── */
+  .today-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px;
+  }
+  .stat-card .label {
+    font-size: 10px; font-family: var(--body); color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 500;
+  }
+  .stat-card .value {
+    font-family: var(--display); font-size: 46px; font-weight: 300;
+    line-height: 1; color: var(--text); letter-spacing: -1px;
+  }
+  .stat-card .value.accent { color: var(--accent); }
+  .stat-card .value.red { color: var(--danger); }
+  .stat-card .sub { color: var(--muted); font-size: 11px; margin-top: 8px; font-family: var(--body); }
+
+  /* ── FOCUS SECTION ──────────────────────────────────────────── */
+  .focus-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 20px;
+  }
+  .focus-header {
+    font-family: var(--display); font-size: 13px; font-weight: 600;
+    color: var(--text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: flex; align-items: center;
+    gap: 8px; text-transform: uppercase; letter-spacing: 2px;
+  }
+  .focus-task {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s; background: var(--surface2);
+  }
+  .focus-task:hover { border-color: var(--border-mid); background: var(--bg2); }
+  .focus-task.overdue { border-left: 3px solid var(--danger); }
+  .focus-task.due-today { border-left: 3px solid var(--orange); }
+  .focus-task.high { border-left: 3px solid var(--accent); }
+  .focus-task-title {
+    font-size: 14px; font-weight: 500; margin-bottom: 4px; color: var(--text);
+    font-family: var(--body);
+  }
+  .focus-task-meta { font-size: 11px; color: var(--muted); font-family: var(--body); }
+  .focus-task-progress { margin-top: 10px; }
+  .focus-task-bar-bg {
+    height: 3px; background: var(--bg2); border-radius: 2px; overflow: hidden;
+  }
+  .focus-task-bar { height: 100%; border-radius: 2px; background: var(--accent); }
+  .focus-badge {
+    display: inline-block; font-size: 9px; font-family: var(--mono); font-weight: 500;
+    padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: 1px;
+    margin-right: 6px;
+  }
+  .focus-badge.overdue { background: rgba(181,45,30,0.12); color: var(--danger); border: 1px solid rgba(181,45,30,0.2); }
+  .focus-badge.today { background: rgba(196,81,26,0.12); color: var(--orange); border: 1px solid rgba(196,81,26,0.2); }
+  .focus-badge.high { background: rgba(26,58,110,0.10); color: var(--accent); border: 1px solid rgba(26,58,110,0.15); }
+  .focus-badge.risk { background: rgba(154,109,10,0.10); color: var(--warn); border: 1px solid rgba(154,109,10,0.2); }
+
+  /* ── UPCOMING ───────────────────────────────────────────────── */
+  .upcoming-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px; cursor: pointer; color: var(--text);
+    transition: background 0.12s;
+  }
+  .upcoming-item:last-child { border-bottom: none; }
+  .upcoming-item:hover { color: var(--accent); }
+  .upcoming-date { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* ── PIPELINE ───────────────────────────────────────────────── */
+  .pipeline-controls {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    color: var(--muted); transition: all 0.15s; font-family: var(--body);
+    letter-spacing: 0.3px;
+  }
+  .filter-btn.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .filter-btn:hover { border-color: var(--border-mid); color: var(--text); }
+  .pipeline-list { display: flex; flex-direction: column; gap: 10px; }
+  .pipeline-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 2px; padding: 18px 20px; cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+    .pipeline-card:hover {
+    background: var(--surface2); border-color: var(--border-glow); box-shadow: var(--glow);
+  }
+  .pipeline-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .pipeline-card-name {
+    font-size: 15px; font-weight: 500; color: var(--text);
+    font-family: var(--body);
+  }
+  .pipeline-card-meta { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--body); }
+  .pipeline-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .pipeline-card-footer { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+  .prog-bar-bg { flex: 1; height: 3px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+  .prog-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .stage-chip {
+    font-size: 10px; font-family: var(--body); font-weight: 500; padding: 3px 9px;
+    border-radius: 20px; white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .stage-new         { background: rgba(26,58,110,0.10); color: var(--accent); border: 1px solid rgba(26,58,110,0.15); }
+  .stage-investigating { background: rgba(154,109,10,0.10); color: var(--warn); border: 1px solid rgba(154,109,10,0.15); }
+  .stage-site-visit  { background: rgba(42,110,72,0.10); color: var(--accent3); border: 1px solid rgba(42,110,72,0.15); }
+  .stage-estimating  { background: rgba(196,81,26,0.10); color: var(--orange); border: 1px solid rgba(196,81,26,0.15); }
+  .stage-submitted   { background: rgba(15,25,35,0.07); color: var(--muted); border: 1px solid var(--border); }
+  .stage-won         { background: rgba(42,110,72,0.12); color: var(--accent3); border: 1px solid rgba(42,110,72,0.2); }
+  .stage-lost        { background: rgba(181,45,30,0.10); color: var(--danger); border: 1px solid rgba(181,45,30,0.15); }
+  .priority-chip {
+    font-size: 9px; font-family: var(--mono); font-weight: 500; padding: 2px 7px;
+    border-radius: 3px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .at-risk-badge {
+    font-size: 9px; font-family: var(--mono); padding: 2px 7px; border-radius: 3px;
+    background: rgba(196,81,26,0.12); color: var(--orange); border: 1px solid rgba(196,81,26,0.2);
+    font-weight: 500; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .next-action-preview {
+    font-size: 11px; color: var(--muted); font-style: italic;
+    padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px;
+  }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+
+  /* ── CAPACITY ───────────────────────────────────────────────── */
+  .capacity-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 28px; }
+  .capacity-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px 22px;
+  }
+  .capacity-card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; font-weight: 500; }
+  .capacity-card-bar-bg { height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .capacity-card-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .capacity-card-numbers { display: flex; justify-content: space-between; font-size: 11px; font-family: var(--mono); color: var(--muted); }
+  .capacity-card-value { font-family: var(--display); font-size: 36px; font-weight: 300; color: var(--text); letter-spacing: -1px; line-height: 1.1; margin-bottom: 4px; }
+
+  /* ── MODALS ─────────────────────────────────────────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,25,35,0.55); z-index: 1000;
+    align-items: flex-start; justify-content: center; padding: 40px 20px;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border-glow);
+    border-radius: 14px; padding: 32px; width: 100%; max-width: 760px;
+    max-height: 88vh; overflow-y: auto; position: relative;
+    box-shadow: 0 16px 60px rgba(15,25,35,0.18);
+  }
+  .modal-close {
+    position: absolute; top: 20px; right: 20px; background: none; border: none;
+    font-size: 18px; cursor: pointer; color: var(--muted); line-height: 1;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-title {
+    font-family: var(--display); font-size: 30px; font-weight: 300;
+    color: var(--text); margin-bottom: 2px; font-style: italic;
+  }
+  .modal-meta { font-size: 11px; color: var(--muted); margin-bottom: 24px; font-family: var(--body); }
+    /* tactical */ .modal-section-title {
+    font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 2px; padding: 18px 0 12px; border-top: 1px solid var(--border);
+    margin-top: 8px; font-family: var(--body);
+  }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-grid .full { grid-column: 1/-1; }
+  .modal-field label {
+    display: block; font-size: 10px; font-weight: 500; color: var(--muted);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px; font-family: var(--body);
+  }
+  .modal-field input, .modal-field select, .modal-field textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border-mid);
+    color: var(--text); border-radius: var(--radius); padding: 9px 12px;
+    font-family: var(--body); font-size: 13px; outline: none; transition: border-color 0.15s;
+  }
+  .modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+    border-color: var(--accent);
+  }
+  .modal-field textarea { min-height: 80px; resize: vertical; }
+  .modal-field select { cursor: pointer; }
+  .modal-save-btn {
+    background: var(--text); color: var(--surface); border: none;
+    border-radius: var(--radius); padding: 12px 28px; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: var(--body);
+    letter-spacing: 1.5px; text-transform: uppercase; transition: opacity 0.15s;
+  }
+  .modal-save-btn:hover { opacity: 0.85; }
+  .modal-delete-btn {
+    background: none; color: var(--danger); border: 1px solid rgba(181,45,30,0.25);
+    border-radius: var(--radius); padding: 12px 20px; font-size: 11px;
+    font-weight: 500; cursor: pointer; font-family: var(--body); letter-spacing: 1px;
+    text-transform: uppercase; transition: all 0.15s;
+  }
+  .modal-delete-btn:hover { background: rgba(181,45,30,0.06); }
+
+  /* ── CHECKLIST ──────────────────────────────────────────────── */
+  .check-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius); margin-bottom: 2px;
+    cursor: pointer; transition: background 0.1s; border: 1px solid transparent;
+  }
+  .check-item:hover { background: var(--bg2); }
+  .check-item.done { opacity: 0.5; }
+  .check-item.done .check-label { text-decoration: line-through; }
+  .check-box {
+    width: 18px; height: 18px; border: 1.5px solid var(--border-mid);
+    border-radius: 3px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0; color: var(--accent); background: var(--surface);
+    transition: all 0.15s;
+  }
+  .check-item.done .check-box { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .check-label { font-size: 12px; color: var(--text-body); flex: 1; line-height: 1.4; }
+  .checklist-outlook-btn {
+    background: none; border: none; cursor: pointer; font-size: 12px;
+    opacity: 0.4; padding: 2px 4px; transition: opacity 0.15s; flex-shrink: 0;
+  }
+  .checklist-outlook-btn:hover { opacity: 1; }
+
+  /* ── DATE GATE ROWS ─────────────────────────────────────────── */
+  .date-gate-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg); margin-bottom: 6px; gap: 12px;
+  }
+  .date-gate-info { flex: 1; }
+  .date-gate-label { font-size: 12px; font-weight: 500; color: var(--text); }
+  .date-gate-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .date-gate-input {
+    background: var(--surface); border: 1px solid var(--border-mid);
+    color: var(--text); border-radius: var(--radius); padding: 7px 10px;
+    font-family: var(--mono); font-size: 11px; outline: none; width: 140px;
+  }
+  .date-gate-input:focus { border-color: var(--accent); }
+  .date-gate-btn {
+    background: var(--bg2); border: 1px solid var(--border-mid); color: var(--accent);
+    border-radius: var(--radius); padding: 7px 12px; font-size: 11px;
+    cursor: pointer; white-space: nowrap; font-family: var(--body); font-weight: 500;
+    transition: all 0.15s;
+  }
+  .date-gate-btn:hover { background: var(--bg); border-color: var(--accent); }
+
+  /* ── LOGS (blockers / risks / assumptions) ──────────────────── */
+  .log-entry {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px;
+  }
+  .log-entry-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .log-entry-title { font-size: 13px; font-weight: 500; color: var(--text); }
+  .log-entry-meta { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .log-entry-desc { font-size: 12px; color: var(--text-body); line-height: 1.5; }
+  .log-btn {
+    background: var(--bg2); border: 1px solid var(--border-mid); color: var(--text-body);
+    border-radius: var(--radius); padding: 8px 14px; font-size: 11px; cursor: pointer;
+    font-family: var(--body); font-weight: 500; transition: all 0.15s; margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+  .log-btn:hover { background: var(--bg); border-color: var(--border-glow); }
+  .log-tag {
+    display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 3px;
+    font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; font-weight: 500;
+  }
+
+  /* ── SCORECARD ──────────────────────────────────────────────── */
+  .scorecard-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .scorecard-table th {
+    text-align: left; padding: 8px 10px; font-size: 9px; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--muted); border-bottom: 1px solid var(--border-mid);
+    font-weight: 600; font-family: var(--body);
+  }
+  .scorecard-row td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .scorecard-input {
+    background: var(--bg); border: 1px solid var(--border-mid); color: var(--text);
+    border-radius: 4px; padding: 5px 8px; font-family: var(--mono); font-size: 12px;
+    outline: none; transition: border-color 0.15s;
+  }
+  .scorecard-input:focus { border-color: var(--accent); }
+  .score-good { color: var(--accent3); border-color: rgba(42,110,72,0.25) !important; }
+  .score-warn { color: var(--warn); border-color: rgba(154,109,10,0.25) !important; }
+  .score-bad { color: var(--danger); border-color: rgba(181,45,30,0.25) !important; }
+  .copy-week-btn {
+    background: var(--text); color: var(--surface); border: none; border-radius: var(--radius);
+    padding: 8px 18px; font-size: 11px; font-weight: 600; cursor: pointer;
+    font-family: var(--body); letter-spacing: 1px; text-transform: uppercase;
+    transition: opacity 0.15s;
+  }
+  .copy-week-btn:hover { opacity: 0.82; }
+
+  /* ── MILESTONE ──────────────────────────────────────────────── */
+  .milestone-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 12px;
+  }
+  .milestone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .milestone-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .milestone-progress { display: flex; align-items: center; gap: 10px; }
+  .milestone-bar-bg { flex: 1; height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+  .milestone-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .milestone-pct { font-size: 11px; font-family: var(--mono); color: var(--muted); }
+  .milestone-desc { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+  .milestone-status-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border-mid); background: var(--bg);
+    color: var(--text-body); font-family: var(--body); transition: all 0.15s;
+  }
+  .milestone-status-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── SCHEDULE ───────────────────────────────────────────────── */
+  .schedule-summary-grid { display: flex; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+  .schedule-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; min-width: 120px; }
+  .schedule-stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+  .schedule-stat-value { font-family: var(--display); font-size: 28px; font-weight: 300; color: var(--text); }
+  .schedule-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  .schedule-day-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden; min-width: 0;
+  }
+  .schedule-day-card.is-today { border-color: var(--orange); }
+  .schedule-day-card.is-past { opacity: 0.55; }
+  .schedule-day-card.is-weekend { opacity: 0.4; }
+  .schedule-day-header {
+    padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--bg2);
+  }
+  .schedule-day-name { font-size: 12px; font-weight: 600; color: var(--text); font-family: var(--body); }
+  .schedule-day-date { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .schedule-day-hours { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+  .schedule-day-hours.has-work { color: var(--accent); }
+  .schedule-day-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 80px; }
+  .schedule-block {
+    background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 10px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .schedule-block:hover { border-color: var(--border-mid); }
+  .schedule-block-name { font-size: 11px; font-weight: 500; color: var(--text); }
+  .schedule-block-meta { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .schedule-block-action { font-size: 10px; color: var(--accent); margin-top: 3px; font-style: italic; }
+  .schedule-block-time { font-size: 10px; font-family: var(--mono); color: var(--muted); margin-top: 4px; }
+  .schedule-empty { font-size: 11px; color: var(--muted); padding: 12px 4px; text-align: center; }
+  .schedule-copy-btn {
+    width: 100%; background: none; border: none; border-top: 1px solid var(--border);
+    padding: 7px; font-size: 10px; color: var(--muted); cursor: pointer;
+    font-family: var(--body); transition: color 0.15s; letter-spacing: 0.3px;
+  }
+  .schedule-copy-btn:hover { color: var(--accent); }
+
+  /* ── TASKS ──────────────────────────────────────────────────── */
+  .task-add-row {
+    display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .task-add-input {
+    flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--border-mid);
+    color: var(--text); border-radius: var(--radius); padding: 9px 14px;
+    font-family: var(--body); font-size: 13px; outline: none; transition: border-color 0.15s;
+  }
+  .task-add-input:focus { border-color: var(--accent); }
+  .task-add-btn {
+    background: var(--text); color: var(--surface); border: none;
+    border-radius: var(--radius); padding: 9px 20px; font-size: 11px;
+    font-weight: 600; cursor: pointer; font-family: var(--body);
+    letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.15s;
+  }
+  .task-add-btn:hover { opacity: 0.82; }
+  .task-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 6px; transition: border-color 0.15s;
+  }
+  .task-item:hover { border-color: var(--border-mid); }
+  .task-item.done { opacity: 0.5; }
+  .task-check {
+    width: 18px; height: 18px; border: 1.5px solid var(--border-mid); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0; cursor: pointer; color: var(--accent);
+    transition: all 0.15s; background: var(--bg);
+  }
+  .task-item.done .task-check { background: var(--accent3); border-color: var(--accent3); color: #fff; }
+  .task-name { flex: 1; font-size: 13px; color: var(--text); }
+  .task-item.done .task-name { text-decoration: line-through; color: var(--muted); }
+  .task-meta { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .task-cal-btn {
+    background: none; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 4px 8px; font-size: 11px; cursor: pointer; color: var(--muted);
+    transition: all 0.15s;
+  }
+  .task-cal-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .task-del-btn {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 14px; padding: 2px 4px; transition: color 0.15s;
+  }
+  .task-del-btn:hover { color: var(--danger); }
+
+  /* ── GROWTH VIEW ────────────────────────────────────────────── */
+  .growth-area-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 8px;
+    cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .growth-area-card:hover { border-color: var(--border-mid); box-shadow: 0 2px 10px rgba(15,25,35,0.06); }
+  .growth-area-card.active-focus { border-color: var(--orange); background: rgba(196,81,26,0.04); }
+  .growth-area-card.completed-today { border-color: var(--accent3); opacity: 0.7; }
+  .growth-cat-label {
+    font-size: 9px; font-family: var(--body); text-transform: uppercase;
+    letter-spacing: 2px; font-weight: 600; margin-bottom: 6px; color: var(--muted);
+  }
+  .growth-area-text { font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 6px; }
+  .growth-area-why { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .growth-streak { font-size: 10px; font-family: var(--mono); color: var(--orange); margin-top: 8px; }
+
+  /* ── HELP VIEW ──────────────────────────────────────────────── */
+  .help-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px; margin-bottom: 16px;
+  }
+  .help-card-header {
+    font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: 0; text-transform: none; font-family: var(--display); margin-bottom: 14px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border); font-family: var(--body);
+  }
+  .help-body { font-size: 13px; color: var(--text-body); line-height: 1.7; }
+  .help-body p { margin-bottom: 10px; }
+  .help-highlight {
+    background: rgba(0,128,255,0.08); border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 16px;
+    font-size: 12px; color: var(--text-body); margin-top: 14px; line-height: 1.6;
+  }
+  .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .help-tech-item { background: var(--bg2); border-radius: var(--radius); padding: 14px; }
+  .help-tech-label { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 5px; font-family: var(--body); }
+  .help-tech-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .help-workflow { display: flex; flex-direction: column; gap: 0; }
+  .help-workflow-step {
+    display: flex; gap: 20px; padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .help-workflow-step:last-child { border-bottom: none; }
+  .help-workflow-time { font-size: 11px; font-weight: 600; color: var(--accent); min-width: 140px; font-family: var(--body); text-transform: uppercase; letter-spacing: 0.5px; }
+  .help-workflow-desc { font-size: 12px; color: var(--text-body); line-height: 1.6; }
+  .help-phases { display: flex; flex-direction: column; gap: 0; }
+  .help-phase { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .help-phase:last-child { border-bottom: none; }
+  .help-phase-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .help-phase-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .help-list { padding-left: 18px; }
+  .help-list li { font-size: 12px; color: var(--text-body); margin-bottom: 6px; line-height: 1.5; }
+
+  /* ── TOAST ──────────────────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--surface); padding: 12px 24px;
+    border-radius: var(--radius); font-size: 13px; font-weight: 500;
+    font-family: var(--body); z-index: 9999; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s; white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── AI PLACEHOLDER ─────────────────────────────────────────── */
+  .ai-placeholder {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 60px 40px; text-align: center;
+  }
+  .ai-placeholder-icon { font-size: 48px; margin-bottom: 16px; }
+  .ai-placeholder-title {
+    font-family: var(--display); font-size: 28px; font-weight: 300;
+    color: var(--text); margin-bottom: 8px; font-style: italic;
+  }
+  .ai-placeholder-desc { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 400px; margin: 0 auto; }
+
+  /* ── UTILITY ────────────────────────────────────────────────── */
+  .new-rfq-btn {
+    width: calc(100% - 20px); margin: 8px 10px; padding: 10px;
+    background: var(--orange); color: #fff; border: none; border-radius: var(--radius);
+    font-family: var(--body); font-size: 12px; font-weight: 600;
+    cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+    transition: opacity 0.15s;
+  }
+  .new-rfq-btn:hover { opacity: 0.88; }
+  select option { background: var(--surface); color: var(--text); }
+
+  /* ── RESPONSIVE ─────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .today-grid { grid-template-columns: 1fr 1fr; }
+    .modal-grid { grid-template-columns: 1fr; }
+    .capacity-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo" style="font-size:36px;letter-spacing:1px">Jayvin Bevans</div>
+    <div class="login-tagline" style="font-size:11px;letter-spacing:3px;color:var(--accent-bright);margin-bottom:4px">Estimator Command Centre</div>
+    <div class="login-divider"></div>
+    <div class="login-sub">Enter your password to access your dashboard</div>
+    <input class="login-input" type="password" id="login-input" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')tryLogin()" autofocus />
+    <button class="login-btn" onclick="tryLogin()">Unlock Dashboard →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div class="shell" id="main-shell" style="display:none">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">Jayvin Bevans <span>Estimator Command</span></div>
+    <div class="topbar-right">
+      <div class="capacity-bar-wrap">
+        <span style="color:var(--muted)">Capacity</span>
+        <div class="capacity-bar"><div class="capacity-fill" id="topCapFill" style="width:0%"></div></div>
+        <span id="topCapLabel" style="color:var(--text)">—</span>
+      </div>
+      <div class="date-chip" id="datechip">—</div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Views</div>
+    <div class="sidebar-item active" onclick="switchView('today')"><span class="icon">⚡</span>Today's Focus <span class="badge warn" id="badge-today">0</span></div>
+    <div class="sidebar-item" onclick="switchView('pipeline')"><span class="icon">📋</span>Pipeline <span class="badge ok" id="badge-pipeline">0</span></div>
+    <div class="sidebar-item" onclick="switchView('capacity')"><span class="icon">📊</span>Capacity</div>
+    <div class="sidebar-item" onclick="switchView('schedule')"><span class="icon">🗓️</span>This Week</div>
+    <div class="sidebar-item" onclick="switchView('tasks')"><span class="icon">✅</span>Tasks <span class="badge warn" id="badge-tasks">0</span></div>
+    <div class="sidebar-item" onclick="switchView('ai')"><span class="icon">🤖</span>AI Assistant</div>
+    <div class="sidebar-item" onclick="switchView('scorecard')"><span class="icon">📈</span>Scorecard</div>
+    <div class="sidebar-item" onclick="switchView('growth')"><span class="icon">🧠</span>Growth</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Quick Add</div>
+    <div class="sidebar-item" onclick="openNewProject()"><span class="icon">＋</span>New RFQ / Project</div>
+    <div class="sidebar-item" onclick="openNewTask()"><span class="icon">＋</span>New Task</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" onclick="switchView('help')"><span class="icon">📖</span>How This Works</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TODAY VIEW -->
+    <div class="view active" id="view-today">
+      <div class="section-header">
+        <div class="section-title">Today's Focus</div>
+        <div class="section-sub" id="today-date-sub">—</div>
+      </div>
+      <div class="today-grid">
+        <div class="stat-card"><div class="label">Active Projects</div><div class="value accent" id="stat-active">0</div><div class="sub">in pipeline</div></div>
+        <div class="stat-card"><div class="label">Overdue Actions</div><div class="value red" id="stat-overdue">0</div><div class="sub">need attention now</div></div>
+        <div class="stat-card"><div class="label">Due Today</div><div class="value" id="stat-today">0</div><div class="sub">tasks / deadlines</div></div>
+      </div>
+      <div class="focus-section">
+        <div class="focus-header">🎯 Priority Tasks — Act On These First</div>
+        <div style="background:rgba(43,108,184,0.08);border:1px solid rgba(43,108,184,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--muted);line-height:1.7">
+          <strong style="color:var(--text)">How this list works:</strong> Projects appear here automatically based on three rules — <strong style="color:var(--danger)">Overdue</strong> (deadline already passed), <strong style="color:var(--accent-bright)">Due Today</strong> (deadline is today), and <strong style="color:var(--warn)">High Priority</strong> (flagged high/specialty with no deadline conflict). Work top to bottom. Each card shows weighted progress, hours remaining, and your last Next Action. The ⚠ AT RISK flag means remaining hours exceed available time before the deadline — act now or raise the issue.
+        </div>
+        <div id="focus-list"></div>
+      </div>
+      <div class="focus-section">
+        <div class="focus-header">📅 All Upcoming Deadlines</div>
+        <div id="upcoming-list"></div>
+      </div>
+
+      <!-- TASKS DUE TODAY / OVERDUE -->
+      <div class="focus-section" id="today-tasks-section" style="display:none">
+        <div class="focus-header" style="justify-content:space-between">
+          <span>✅ Tasks Due</span>
+          <button onclick="switchView('tasks')" style="background:none;border:none;color:var(--accent-bright);cursor:pointer;font-size:12px;font-family:var(--display);text-transform:uppercase;letter-spacing:1px">View All →</button>
+        </div>
+        <div id="today-tasks-list"></div>
+      </div>
+
+      <!-- GROWTH NUDGE -->
+      <div class="focus-section" style="border-color:rgba(26,58,110,0.15);padding:14px 18px">
+        <div id="today-growth-nudge"></div>
+      </div>
+    </div>
+
+    <!-- PIPELINE VIEW -->
+    <div class="view" id="view-pipeline">
+      <div class="section-header">
+        <div class="section-title">Project Pipeline</div>
+        <div class="section-sub">All active RFQs and estimates</div>
+      </div>
+      <div class="pipeline-controls">
+        <input class="search-input" type="text" placeholder="Search projects, clients..." oninput="filterPipeline(this.value)" />
+        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('new', this)">New RFQ</button>
+        <button class="filter-btn" onclick="setFilter('investigating', this)">Investigating</button>
+        <button class="filter-btn" onclick="setFilter('estimating', this)">Estimating</button>
+        <button class="filter-btn" onclick="setFilter('submitted', this)">Submitted</button>
+        <button class="add-btn" onclick="openNewProject()">+ New Project</button>
+      </div>
+      <table class="pipeline-table">
+        <thead>
+          <tr>
+            <th>Project Code / Contact</th>
+            <th>Stage</th>
+            <th>Priority</th>
+            <th>Quote Deadline</th>
+            <th>Project Value</th>
+            <th>Progress</th>
+            <th>Next Action</th>
+          </tr>
+        </thead>
+        <tbody id="pipeline-body"></tbody>
+      </table>
+    </div>
+
+    <!-- CAPACITY VIEW -->
+    <div class="view" id="view-capacity">
+      <div class="section-header">
+        <div class="section-title">Capacity Overview</div>
+        <div class="section-sub">Know your load before taking on more</div>
+      </div>
+      <div class="capacity-grid">
+        <div class="cap-card">
+          <div class="cap-label">Overall Load</div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px">Active projects vs your max of 15</div>
+          <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-overall" style="width:0%; background:var(--accent3)"></div></div>
+          <div class="cap-value" id="cap-overall-label">—</div>
+        </div>
+        <div class="cap-card">
+          <div class="cap-label">Active Estimates</div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px">Projects in progress (all stages)</div>
+          <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-active" style="width:0%; background:var(--accent)"></div></div>
+          <div class="cap-value" id="cap-active-label">—</div>
+        </div>
+        <div class="cap-card">
+          <div class="cap-label">Site Visits Pending</div>
+          <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px">Projects awaiting site visit</div>
+          <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-site" style="width:0%; background:#bb88ff"></div></div>
+          <div class="cap-value" id="cap-site-label">—</div>
+        </div>
+      </div>
+      <div class="focus-section">
+        <div class="focus-header">📌 Project Load Breakdown</div>
+        <div id="capacity-detail"></div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE VIEW -->
+    <div class="view" id="view-schedule">
+      <div class="section-header" style="justify-content:space-between;align-items:center">
+        <div>
+          <div class="section-title">This Week</div>
+          <div class="section-sub">Suggested time blocks — copy into Outlook</div>
+        </div>
+        <button onclick="copyWeekToClipboard()" class="copy-week-btn">📋 Copy Full Week for Outlook</button>
+      </div>
+      <div id="schedule-summary"></div>
+      <div id="schedule-days"></div>
+      <div class="schedule-tip">
+        <span style="color:var(--accent-bright);font-weight:600">How to use:</span>
+        Click <strong>Copy for Outlook</strong> on any day, then paste directly into a new Outlook calendar appointment. Set estimated hours on each project to make scheduling more accurate.
+      </div>
+    </div>
+
+    <!-- TASKS VIEW -->
+    <div class="view" id="view-tasks">
+      <div class="section-header" style="justify-content:space-between;align-items:center">
+        <div>
+          <div class="section-title">Tasks</div>
+          <div class="section-sub">General tasks not tied to a specific estimate</div>
+        </div>
+        <button onclick="openNewTask()" class="copy-week-btn">＋ New Task</button>
+      </div>
+
+      <!-- Task filters -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="task-filter-btn active" data-filter="all" onclick="setTaskFilter('all',this)">All</button>
+        <button class="task-filter-btn" data-filter="pending" onclick="setTaskFilter('pending',this)">Pending</button>
+        <button class="task-filter-btn" data-filter="overdue" onclick="setTaskFilter('overdue',this)">Overdue</button>
+        <button class="task-filter-btn" data-filter="done" onclick="setTaskFilter('done',this)">Completed</button>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="task-filter-btn" data-cat="all" onclick="setTaskCat('all',this)" style="background:rgba(0,128,255,0.15);border-color:var(--accent)">All Categories</button>
+          <button class="task-filter-btn" data-cat="Admin" onclick="setTaskCat('Admin',this)">Admin</button>
+          <button class="task-filter-btn" data-cat="Follow-up" onclick="setTaskCat('Follow-up',this)">Follow-up</button>
+          <button class="task-filter-btn" data-cat="Internal" onclick="setTaskCat('Internal',this)">Internal</button>
+          <button class="task-filter-btn" data-cat="Other" onclick="setTaskCat('Other',this)">Other</button>
+        </div>
+      </div>
+
+      <div id="tasks-list"></div>
+    </div>
+
+    <!-- TASK MODAL -->
+    <div class="modal-overlay" id="task-modal" style="display:none" onclick="if(event.target===this)closeTaskModal()">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeTaskModal()">✕</button>
+        <div class="modal-title" id="task-modal-title">New Task</div>
+        <div class="modal-meta">General task — not tied to a specific estimate</div>
+        <input type="hidden" id="task-id">
+        <div class="modal-grid">
+          <div class="modal-field full">
+            <label>Task Name</label>
+            <input type="text" id="task-name" placeholder="e.g. Call supplier about material pricing">
+          </div>
+          <div class="modal-field">
+            <label>Due Date</label>
+            <input type="date" id="task-due">
+          </div>
+          <div class="modal-field">
+            <label>Priority</label>
+            <select id="task-priority">
+              <option value="high">🔴 High</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Category</label>
+            <select id="task-category">
+              <option value="Admin">Admin</option>
+              <option value="Follow-up">Follow-up</option>
+              <option value="Internal">Internal</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="modal-field full">
+            <label>Notes (optional)</label>
+            <textarea id="task-notes" placeholder="Any additional context..."></textarea>
+          </div>
+        </div>
+        <div style="background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent3);margin-bottom:16px">
+          📅 This task will automatically be added to your Google Calendar when saved.
+        </div>
+        <div class="modal-actions">
+          <button class="btn-save" onclick="saveTask()">Save Task</button>
+          <button class="btn-sec" onclick="closeTaskModal()">Cancel</button>
+          <button class="btn-del" id="task-del-btn" onclick="deleteTask()" style="display:none">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI ASSISTANT VIEW -->
+    <div class="view" id="view-ai">
+      <div class="section-header">
+        <div class="section-title">AI Assistant</div>
+        <div class="section-sub">Powered by Claude</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center">
+        <div style="font-size:64px;margin-bottom:24px">🤖</div>
+        <div style="font-family:var(--display);font-size:32px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#fff;margin-bottom:12px">Coming in V3</div>
+        <div style="font-size:15px;color:var(--muted);max-width:480px;line-height:1.8;margin-bottom:32px">
+          AI-powered quote letter generation, scope of work summaries, and document automation — built directly into your workflow.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:360px;width:100%">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;text-align:left">
+            <span style="font-size:20px">✍️</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#fff;font-family:var(--display);text-transform:uppercase;letter-spacing:0.5px">Full Quote Letter Generator</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">One click from project data to ready-to-send letter</div>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;text-align:left">
+            <span style="font-size:20px">📋</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#fff;font-family:var(--display);text-transform:uppercase;letter-spacing:0.5px">Scope of Work Summaries</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Auto-generate scope descriptions from your notes</div>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;text-align:left">
+            <span style="font-size:20px">📅</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#fff;font-family:var(--display);text-transform:uppercase;letter-spacing:0.5px">Follow-up Email Drafts</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Context-aware follow-ups based on project stage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCORECARD VIEW -->
+    <div class="view" id="view-scorecard">
+      <div class="section-header" style="justify-content:space-between;align-items:center">
+        <div>
+          <div class="section-title" style="color:var(--text)">Scorecard</div>
+          <div class="section-sub">Weekly metrics + 30/60/90 day milestones</div>
+        </div>
+        <button onclick="addScorecardWeek()" class="copy-week-btn">⚡ Log This Week</button>
+      </div>
+
+      <!-- AUTO-CALC EXPLAINER -->
+      <div style="background:rgba(26,58,110,0.06);border:1px solid rgba(26,58,110,0.15);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--muted);line-height:1.7">
+        <span style="color:var(--accent);font-weight:600">⚡ Auto-calculated every Friday</span> from your submitted projects:
+        <strong style="color:#fff"># Estimates</strong>, <strong style="color:#fff">Stage Gate %</strong> (checklist completion), <strong style="color:#fff">Peer Review %</strong> (s3c9 ticked), <strong style="color:#fff">Freeze %</strong> and <strong style="color:#fff">Sub-Ready %</strong> (gate dates set before deadline).
+        <br>The only field you fill in manually: <strong style="color:var(--warn)">Defects ✎</strong> — log any errors found after freeze. Then add notes and send to leadership Monday morning.
+      </div>
+
+      <!-- 30/60/90 MILESTONES -->
+      <div class="focus-section" style="margin-bottom:16px">
+        <div class="focus-header">🎯 30 / 60 / 90 Day Milestones</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="milestone-list">
+          <div class="milestone-row" data-idx="0">
+            <div class="milestone-window">0–7 days</div>
+            <div class="milestone-label">System installed — stage checklists adopted; scorecard template created; reviewer identified; calendar gates used</div>
+            <select class="milestone-status" onchange="saveMilestones()">
+              <option value="pending">☐ Pending</option>
+              <option value="inprogress">🔄 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+          <div class="milestone-row" data-idx="1">
+            <div class="milestone-window">8–30 days</div>
+            <div class="milestone-label">Consistency baseline — ≥90% stage gate compliance; peer review 100%; freeze ≥80%; post-freeze defects trending down</div>
+            <select class="milestone-status" onchange="saveMilestones()">
+              <option value="pending">☐ Pending</option>
+              <option value="inprogress">🔄 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+          <div class="milestone-row" data-idx="2">
+            <div class="milestone-window">31–60 days</div>
+            <div class="milestone-label">High reliability — freeze ≥90%; submission-ready ≥90%; post-freeze critical defects = 0 for 4 consecutive weeks</div>
+            <select class="milestone-status" onchange="saveMilestones()">
+              <option value="pending">☐ Pending</option>
+              <option value="inprogress">🔄 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+          <div class="milestone-row" data-idx="3">
+            <div class="milestone-window">61–90 days</div>
+            <div class="milestone-label">Sustained standard — freeze and submission-ready at 100% for 4 consecutive weeks; leadership reporting routine; process repeatable under pressure</div>
+            <select class="milestone-status" onchange="saveMilestones()">
+              <option value="pending">☐ Pending</option>
+              <option value="inprogress">🔄 In Progress</option>
+              <option value="done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY SCORECARD TABLE -->
+      <div class="focus-section">
+        <div class="focus-header" style="justify-content:space-between">
+          <span>📊 Weekly Scorecard Log</span>
+          <span style="font-size:11px;color:var(--muted)">Updated every Friday · Reported every Monday</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px" id="scorecard-table">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Week Of</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px"># Est.</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Stage Gate %</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Peer Review %</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Freeze %</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Sub-Ready %</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Defects</th>
+                <th style="padding:8px 6px;color:var(--muted);font-weight:600;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;font-size:10px">Notes</th>
+                <th style="padding:8px 6px;width:30px"></th>
+              </tr>
+            </thead>
+            <tbody id="scorecard-body"></tbody>
+          </table>
+          <div id="scorecard-empty" style="text-align:center;padding:40px;color:var(--muted);font-size:13px" >No weeks logged yet. Click "+ Log This Week" to start tracking.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROWTH VIEW -->
+    <div class="view" id="view-growth">
+      <div class="section-header">
+        <div class="section-title">Growth</div>
+        <div class="section-sub">Daily focus — R3 Asd/As profile · Analyzer 40% · Stabilizer 31% · Driver 29%</div>
+      </div>
+
+      <!-- DAILY FOCUS PICKER -->
+      <div class="focus-section" style="margin-bottom:16px;border-color:rgba(0,229,160,0.4)">
+        <div class="focus-header" style="color:var(--accent3)">🎯 Today's Growth Focus</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Pick one thing to actively practice today. One at a time — that's the rule.</div>
+        <div id="daily-focus-card" style="background:var(--bg2);border:1px solid var(--accent3);border-radius:12px;padding:18px 20px;margin-bottom:14px;display:none">
+          <div id="daily-focus-category" style="font-size:10px;font-family:var(--display);text-transform:uppercase;letter-spacing:2px;color:var(--accent3);margin-bottom:6px"></div>
+          <div id="daily-focus-text" style="font-size:15px;font-weight:600;color:#fff;line-height:1.5;margin-bottom:8px"></div>
+          <div id="daily-focus-why" style="font-size:12px;color:var(--muted);line-height:1.6"></div>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button onclick="markFocusDone()" class="btn-save" style="padding:8px 18px;font-size:12px">✓ Done Today</button>
+            <button onclick="clearDailyFocus()" class="btn-sec" style="padding:8px 14px;font-size:12px">Choose Different</button>
+          </div>
+        </div>
+        <div id="daily-focus-empty" style="font-size:13px;color:var(--muted);padding:10px 0">No focus selected yet today. Pick one from the list below.</div>
+        <div id="daily-focus-done-msg" style="display:none;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--accent3)">
+          ✅ Focus completed today. Strong work. Come back tomorrow for your next one.
+        </div>
+      </div>
+
+      <!-- R3 PROFILE SUMMARY -->
+      <div class="focus-section" style="margin-bottom:16px">
+        <div class="focus-header">🧬 Your R3 Profile — Asd/As</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+            <div style="font-size:10px;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Public Style</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Analyzer</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:39%;height:100%;background:#8b5cf6;border-radius:3px"></div></div><span style="font-size:11px;color:#8b5cf6;font-weight:700">39%</span></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Stabilizer</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:31%;height:100%;background:#22c55e;border-radius:3px"></div></div><span style="font-size:11px;color:#22c55e;font-weight:700">31%</span></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Driver</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:29%;height:100%;background:#ef4444;border-radius:3px"></div></div><span style="font-size:11px;color:#ef4444;font-weight:700">29%</span></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Influencer</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:1%;height:100%;background:#38bdf8;border-radius:3px"></div></div><span style="font-size:11px;color:#38bdf8;font-weight:700">1%</span></div></div>
+            </div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+            <div style="font-size:10px;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px">Private Style (the real you)</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Analyzer</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:40%;height:100%;background:#8b5cf6;border-radius:3px"></div></div><span style="font-size:11px;color:#8b5cf6;font-weight:700">40%</span></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Stabilizer</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:26%;height:100%;background:#22c55e;border-radius:3px"></div></div><span style="font-size:11px;color:#22c55e;font-weight:700">26%</span></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Driver</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:24%;height:100%;background:#ef4444;border-radius:3px"></div></div><span style="font-size:11px;color:#ef4444;font-weight:700">24%</span></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#fff">Influencer</span><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:10%;height:100%;background:#38bdf8;border-radius:3px"></div></div><span style="font-size:11px;color:#38bdf8;font-weight:700">10%</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.8">
+          You lead with <strong style="color:#8b5cf6">Analyzer</strong> energy — detail-oriented, methodical, and quality-driven. Your <strong style="color:#22c55e">Stabilizer</strong> secondary makes you a reliable, steady presence who avoids conflict and values consistency. Your <strong style="color:#ef4444">Driver</strong> tertiary gives you results-focus and ambition but it's the one you have to consciously activate. Your <strong style="color:#38bdf8">Influencer</strong> is your lowest energy — spontaneous social warmth doesn't come naturally and that's okay, but it's worth developing intentionally.
+          <br><br>Under stress you go <strong style="color:#fff">withdrawn and headstrong</strong> — you retreat into analysis rather than communicating what's happening. The antidote is always the same: say it out loud before you disappear into your own head.
+        </div>
+      </div>
+
+      <!-- GROWTH AREAS LIST -->
+      <div class="focus-section">
+        <div class="focus-header">💪 Growth Areas — Pick One to Focus On Today</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Drawn directly from your R3 report. Each one is a real pattern identified in your profile.</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="growth-areas-list"></div>
+      </div>
+    </div>
+
+    <!-- HELP VIEW -->
+    <div class="view" id="view-help">
+      <div class="section-header">
+        <div class="section-title">How This Works</div>
+        <div class="section-sub">Final reference guide — locked for 30-day trial starting March 2026</div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">🏗️ What This Is</div>
+        <div class="help-body">
+          <p>A custom-built estimating management dashboard for the Senior Estimator role. Built to solve one real problem: managing 6–15 simultaneous RFQs without dropping the ball on deadlines, follow-ups, or client commitments.</p>
+          <p style="margin-top:10px">Before this tool, tracking was scattered across a notebook, iPad notes, and Smartsheet — no single source of truth, no way to see what needed attention today. This consolidates everything: project tracking, checklist discipline, schedule gates, scorecard measurement, and personal growth — in one place, synced to Google Sheets, accessible from any device.</p>
+          <div class="help-highlight"><strong>Core principle:</strong> Every project always has a clear Next Action. Work Today's Focus top-to-bottom each morning and you are never reactive — you are always ahead.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">⚙️ How It's Built</div>
+        <div class="help-body">
+          <div class="help-grid">
+            <div class="help-tech-item"><div class="help-tech-label">Frontend</div><div class="help-tech-desc">A single HTML file — no frameworks, no installation. Opens in any browser on any device.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Hosting</div><div class="help-tech-desc">GitHub Pages — permanent URL, zero cost, accessible from any device at any time.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Database</div><div class="help-tech-desc">Google Sheet "ESTIMATING" — one row per project, human-readable, exportable. This is the single source of truth for all project data.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Sync Layer</div><div class="help-tech-desc">Google Apps Script bridges the dashboard and the Sheet. Every save syncs in real time. On load, the Sheet feeds the dashboard.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Local Storage</div><div class="help-tech-desc">Scorecard data and Growth streaks are stored in the browser's local storage. Don't clear your browser cache — this data does not sync to Sheets.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Cost</div><div class="help-tech-desc">$0. GitHub Pages, Google Sheets, and Apps Script are all free. No subscriptions, no vendor lock-in.</div></div>
+          </div>
+          <div class="help-highlight" style="margin-top:16px"><strong>Data flow:</strong> Dashboard → Apps Script → Google Sheets. On load: Sheets → Script → Dashboard. Scorecard and Growth data live in the browser only.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">📅 Daily Workflow</div>
+        <div class="help-body">
+          <div class="help-workflow">
+            <div class="help-workflow-step">
+              <div class="help-workflow-time">Morning — 5 min</div>
+              <div class="help-workflow-desc">Open <strong>Today's Focus</strong>. Check your growth nudge — pick one if not set. Work the project list top-to-bottom: overdue first, due today second, high priority third.</div>
+            </div>
+            <div class="help-workflow-step">
+              <div class="help-workflow-time">New RFQ arrives</div>
+              <div class="help-workflow-desc">Click <strong>+ New RFQ</strong>. Enter project code, contact, value, and submission date. Set Key Dates (freeze gate, submission-ready gate) and click 📅 Outlook on each. Set the first Next Action. Save. The project is live and synced instantly.</div>
+            </div>
+            <div class="help-workflow-step">
+              <div class="help-workflow-time">During the day</div>
+              <div class="help-workflow-desc">Open any project. Tick checklist items. Update Notes. Log risks, assumptions, and blockers as they arise — don't hold them in your head. <strong>Before closing: always update Next Action.</strong> This is the one habit everything else depends on.</div>
+            </div>
+            <div class="help-workflow-step">
+              <div class="help-workflow-time">End of day — 5 min</div>
+              <div class="help-workflow-desc">Scan <strong>Pipeline</strong>. Every active project needs a current Next Action. Any ⚠ AT RISK flag means either schedule the time or raise the capacity issue now — not later.</div>
+            </div>
+            <div class="help-workflow-step">
+              <div class="help-workflow-time">Friday — 5 min</div>
+              <div class="help-workflow-desc">Go to <strong>Scorecard</strong>. Click ⚡ Log This Week. The system auto-fills # estimates, stage gate %, peer review %, freeze %, and sub-ready % from your submitted projects. The only field you fill manually: <strong>Defects</strong>. Add notes and save.</div>
+            </div>
+            <div class="help-workflow-step">
+              <div class="help-workflow-time">Monday morning — 10 min</div>
+              <div class="help-workflow-desc">Open <strong>This Week</strong>. The schedule distributes project work across Mon–Fri by priority and deadline. Copy blocks into Outlook. Send last week's scorecard row to leadership.</div>
+            </div>
+          </div>
+          <div class="help-highlight"><strong>The critical habit:</strong> Next Action must be current before closing any project. If it's blank or stale, the project disappears from your priority radar. Everything else in the system depends on this one field.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">📋 Tiered Checklist System</div>
+        <div class="help-body">
+          <p>The checklist automatically adjusts based on project value the moment you enter it. Each tier gets the right amount of process — no more, no less.</p>
+          <div class="help-phases" style="margin-top:14px">
+            <div class="help-phase"><div class="help-phase-name" style="color:var(--muted)">⚫ Small — under $10K (~4.5h total)</div><div class="help-phase-desc">Client Setup → Day 0 → Day 1 → Site Visit → Estimating (takeoff + materials only) → Submission (submit + follow-up). Lean process — no sub quotes, no internal review, no submission prep checklist.</div></div>
+            <div class="help-phase"><div class="help-phase-name" style="color:var(--warn)">🟡 Medium — $10K–$50K (~6.9h total)</div><div class="help-phase-desc">Client Setup → Day 0 → Day 1 → Site Visit → Estimating (advanced: scope matrix, takeoff, RFQs, pricing basis, narrative, checkpoint) → Submission & Presentation (full pre-submission checklist). The 24-hour freeze gate applies at this tier.</div></div>
+            <div class="help-phase"><div class="help-phase-name" style="color:var(--danger)">🔴 Large — $50K+ (~11h total)</div><div class="help-phase-desc">Everything in Medium + internal Review & sign-off + Closeout & Continuity (archive, 1-page summary, handoff, defect log). In-person presentation logistics included.</div></div>
+            <div class="help-phase"><div class="help-phase-name" style="color:var(--warn)">⭐ Specialty — any value</div><div class="help-phase-desc">Inherits the Large checklist and adds Secondary Review and Final Sign-off steps. Use for high-complexity or high-risk jobs regardless of dollar value.</div></div>
+          </div>
+          <div class="help-highlight" style="margin-top:14px">A tier badge appears at the top of every checklist so you always know which process is active. Hours are weighted — a 5-minute gate task moves the progress bar far less than a 90-minute site visit. Progress % is real, not just item count.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">📅 Key Dates & Schedule Gates</div>
+        <div class="help-body">
+          <p>Every project has a Key Dates section in its modal. This is where schedule gates live — not in the checklist. Set them once at intake. Click 📅 Outlook on each gate to block it in your calendar immediately.</p>
+          <div class="help-phases" style="margin-top:14px">
+            <div class="help-phase"><div class="help-phase-name">📬 Submission / Presentation Date</div><div class="help-phase-desc">The hard deadline — the date the quote is due to the client. Everything else is anchored to this date.</div></div>
+            <div class="help-phase"><div class="help-phase-name">🔒 Internal Freeze Gate (48hrs before submission)</div><div class="help-phase-desc">The estimate is locked. No more changes. This gate is what the Freeze % in the Scorecard measures — did you hit it?</div></div>
+            <div class="help-phase"><div class="help-phase-name">✅ Submission-Ready Gate (24hrs before submission)</div><div class="help-phase-desc">PDF verified, copies counted, cover email drafted. Everything is ready to go with 24 hours to spare.</div></div>
+            <div class="help-phase"><div class="help-phase-name">👤 Peer Review Scheduled</div><div class="help-phase-desc">Large and specialty projects only. The reviewer is named and the time is blocked before the freeze gate.</div></div>
+            <div class="help-phase"><div class="help-phase-name">Other Gates</div><div class="help-phase-desc">Site Visit, RFQ Decision Deadline, Follow-Up Call, and Client's Completion Date are also available — use what applies to each job.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">📊 Scorecard — Weekly Measurement</div>
+        <div class="help-body">
+          <p>Every Friday, click <strong>⚡ Log This Week</strong> in the Scorecard view. The system auto-calculates all metrics from your submitted projects that week. You fill in one field manually: <strong>Defects</strong>.</p>
+          <div class="help-grid" style="margin-top:14px">
+            <div class="help-tech-item"><div class="help-tech-label">Stage Gate %</div><div class="help-tech-desc">Average checklist completion across all submitted projects this week. Target: ≥95%.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Peer Review %</div><div class="help-tech-desc">% of large/specialty projects with internal review completed (c14 ticked). Small jobs count as passed automatically. Target: 100%.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Freeze %</div><div class="help-tech-desc">% of projects where the freeze date was set at or before the submission deadline. Target: ≥90%.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Sub-Ready %</div><div class="help-tech-desc">% of projects where the submission-ready date was set before the submission deadline. Target: ≥90%.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">Defects ✎</div><div class="help-tech-desc">Manual entry only — errors found after freeze. Use the + Log Defect button in the final checklist phase to increment this instantly without switching views. Target: 0.</div></div>
+            <div class="help-tech-item"><div class="help-tech-label">30/60/90 Milestones</div><div class="help-tech-desc">Four milestones tracking adoption of the system over the first 90 days. Update status manually each week as you progress.</div></div>
+          </div>
+          <div class="help-highlight" style="margin-top:14px"><strong>Note:</strong> Scorecard and milestone data are saved in your browser's local storage. Don't clear your browser cache on the device you use for this dashboard.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">🧠 Growth — R3 Daily Practice</div>
+        <div class="help-body">
+          <p>The Growth view is built from your R3 Asd/As profile (Analyzer 40%, Stabilizer 26%, Driver 24%, Influencer 10%). It gives you 15 specific growth areas drawn directly from your report — each one a real behavioural pattern identified in your profile, with context on why it matters.</p>
+          <div class="help-phases" style="margin-top:14px">
+            <div class="help-phase"><div class="help-phase-name">The daily practice</div><div class="help-phase-desc">Each morning, Today's Focus shows a growth nudge. If no focus is set, it prompts you to pick one. Go to Growth, click any area to set it as your daily focus. One at a time — that's the rule.</div></div>
+            <div class="help-phase"><div class="help-phase-name">Marking done</div><div class="help-phase-desc">At the end of the day, go back to Growth and click Mark Done. The system tracks your streak for each area so you can see what you're actually practising consistently.</div></div>
+            <div class="help-phase"><div class="help-phase-name">What to focus on</div><div class="help-phase-desc">Your R3 report flags: decision-making without analysis-paralysis, asserting yourself in meetings, sharing reasoning out loud, and communicating under stress instead of going quiet. These are the areas where one daily rep compounds fastest.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">🔒 Security &amp; Privacy</div>
+        <div class="help-body">
+          <ul class="help-list">
+            <li><strong>Password protected</strong> on every load — no data is visible without the correct password.</li>
+            <li><strong>No client company names</strong> are stored. Projects use internal code names only (e.g. PROJ-2025-047).</li>
+            <li><strong>Contact name and phone/email</strong> are stored — equivalent to what lives in Outlook or a notebook.</li>
+            <li><strong>The Google Sheet</strong> is private to the owning Google account and is not publicly shared.</li>
+            <li><strong>The dashboard URL</strong> is technically public but the password prevents any data access.</li>
+          </ul>
+          <div class="help-highlight" style="margin-top:12px"><strong>Tip:</strong> For sensitive projects, use abstract codes (e.g. NW-COMM-04) rather than descriptive names. The system is designed to support this.</div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-card-header">🔧 Maintaining &amp; Updating</div>
+        <div class="help-body">
+          <div class="help-workflow">
+            <div class="help-workflow-step"><div class="help-workflow-time">Next update: 4 weeks</div><div class="help-workflow-desc">This version is locked for 30 days starting March 2026. No changes until the first scorecard review. Run the system as-is and let the data tell you what to improve.</div></div>
+            <div class="help-workflow-step"><div class="help-workflow-time">Updating the dashboard</div><div class="help-workflow-desc">Edit the HTML file and re-upload to GitHub. Changes go live within 60 seconds. Data in Google Sheets is never affected by a dashboard update.</div></div>
+            <div class="help-workflow-step"><div class="help-workflow-time">Adding team members</div><div class="help-workflow-desc">Share the URL and password. The Google Sheet can be shared with management for read-only visibility at any time.</div></div>
+            <div class="help-workflow-step"><div class="help-workflow-time">Changing the password</div><div class="help-workflow-desc">Update the password hash in the dashboard file and re-upload to GitHub. The old password stops working immediately.</div></div>
+            <div class="help-workflow-step"><div class="help-workflow-time">If sync stops working</div><div class="help-workflow-desc">Most common cause: Apps Script authorization expired. Re-open the script in Google Drive, re-deploy as a web app, update the script URL in the dashboard file. Takes about 5 minutes.</div></div>
+          </div>
+          <div class="help-highlight"><strong>Backup:</strong> All project data lives in Google Sheets — automatically backed up by Google with full version history. No project record can be lost due to a browser crash, device failure, or dashboard update. Scorecard data is browser-only — don't clear cache.</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:40px 0 20px;color:var(--muted);font-family:var(--mono);font-size:11px;border-top:1px solid var(--border);margin-top:8px">
+        Jayvin Bevans · Senior Estimator · <span style="color:var(--accent-bright)">Version 2.1 — 30-Day Trial Build · March 2026</span><br>
+        <span style="margin-top:6px;display:inline-block">Dashboard · Google Sheets · GitHub Pages · Zero cost · Fully maintainable</span>
+      </div>
+    </div>
+
+    </div>
+
+
+<!-- PROJECT DETAIL MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-proj-title">New Project</div>
+    <div class="modal-meta" id="modal-proj-meta">—</div>
+
+    <!-- SECTION: BASICS -->
+    <div class="modal-section-title" style="margin-top:8px;border-top:none;padding-top:0">📁 Project Info</div>
+    <div class="modal-grid">
+      <div class="modal-field"><label>Project Code</label><input type="text" id="f-name" placeholder="e.g. PROJ-2025-047 or Warehouse-NW" /></div>
+      <div class="modal-field"><label>Stage</label>
+        <select id="f-stage">
+          <option value="new">🔵 New RFQ</option>
+          <option value="investigating">🟡 Investigating</option>
+          <option value="site-visit">🟣 Site Visit Required</option>
+          <option value="estimating">🟢 Estimating</option>
+          <option value="submitted">⬜ Quote Submitted</option>
+          <option value="won">✅ Won</option>
+          <option value="lost">❌ Lost / No Go</option>
+        </select>
+      </div>
+      <div class="modal-field"><label>Contact Name</label><input type="text" id="f-contact" placeholder="Client contact name" /></div>
+      <div class="modal-field"><label>Contact Phone / Email</label><input type="text" id="f-contact-info" placeholder="Phone or email" /></div>
+      <div class="modal-field"><label>Priority</label>
+        <select id="f-priority">
+          <option value="specialty">⭐ Specialty</option>
+          <option value="high">🔴 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">⚫ Low</option>
+        </select>
+      </div>
+      <div class="modal-field"><label>Estimated Project Value ($)</label><input type="number" id="f-value" placeholder="0" oninput="autoSuggestHours()" /></div>
+      <div class="modal-field"><label>Est. Hours to Complete Quote <span style="color:var(--accent-bright);font-size:9px" id="hours-hint"></span></label><input type="number" id="f-hours" placeholder="e.g. 3" min="0.5" step="0.5" /></div>
+      <div class="modal-field"><label>Share Drive Folder <span style="color:#b8d4e8;font-size:9px">(optional)</span></label><input type="text" id="f-folder" placeholder="\\Server\Projects\2025\..." /></div>
+      <div class="modal-field full"><label>Scope of Work</label><textarea id="f-scope" placeholder="What's involved — trades, site conditions, special requirements..."></textarea></div>
+      <div class="modal-field full"><label>Notes / Key Info</label><textarea id="f-notes" placeholder="Dump everything here — calls, site observations, client constraints, anything that matters..." style="min-height:100px"></textarea></div>
+      <div class="modal-field full"><label>Next Action Required</label><input type="text" id="f-next" placeholder="e.g. Call client to confirm site visit date" /></div>
+    </div>
+
+    <!-- SECTION: KEY DATES & GATES -->
+    <div class="modal-section-title">📅 Key Dates & Schedule Gates</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">📬 Submission / Presentation Date</div>
+          <div class="date-gate-sub">The date the quote is due to the client</div>
+        </div>
+        <input type="date" id="f-deadline" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-deadline','Submission Date','Quote due to client — final deadline')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">🔒 Internal Freeze Gate <span style="color:var(--muted);font-size:10px">(48 hrs before submission)</span></div>
+          <div class="date-gate-sub">Package locked — no changes after this point</div>
+        </div>
+        <input type="date" id="f-freeze-date" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-freeze-date','Internal Freeze Gate','Package must be frozen. No changes after this point. Peer review sign-off required.')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">✅ Submission-Ready Gate <span style="color:var(--muted);font-size:10px">(24 hrs before submission)</span></div>
+          <div class="date-gate-sub">Final PDF verified, printed copies done, email prepared</div>
+        </div>
+        <input type="date" id="f-subready-date" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-subready-date','Submission-Ready Gate','Final PDF verified, printed copies counted, digital backup done, cover email prepared.')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">👥 Peer Review Scheduled</div>
+          <div class="date-gate-sub">Non-author review of scope, pricing, and document quality</div>
+        </div>
+        <input type="date" id="f-review-date" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-review-date','Peer Review — Estimating','Non-author review: scope alignment, high-risk items, document quality. Sign-off required before freeze.')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">🏗️ Site Visit</div>
+          <div class="date-gate-sub">On-site assessment (if required)</div>
+        </div>
+        <input type="date" id="f-sitevisit-date" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-sitevisit-date','Site Visit','On-site assessment. Bring camera, take notes. Consolidate photos and notes same day.')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">📞 RFQ Decision Deadline</div>
+          <div class="date-gate-sub">Date by which vendor/subtrade quotes must be received</div>
+        </div>
+        <input type="date" id="f-rfq-deadline" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-rfq-deadline','RFQ Decision Deadline','Vendor/subtrade quotes must be received by this date. If not received, submit assumptions and escalate.')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">📆 Follow-Up Call</div>
+          <div class="date-gate-sub">Post-submission client follow-up</div>
+        </div>
+        <input type="date" id="f-followup-date" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-followup-date','Client Follow-Up Call','Post-submission follow-up. Check if client received quote, confirm next steps, ask about decision timeline.')">📅 Outlook</button>
+      </div>
+
+      <div class="date-gate-row">
+        <div class="date-gate-info">
+          <div class="date-gate-label">🗓️ Client's Completion Date</div>
+          <div class="date-gate-sub">When the client needs the work done (not the quote)</div>
+        </div>
+        <input type="date" id="f-client-deadline" class="date-gate-input" />
+        <button class="date-gate-btn" onclick="scheduleGate('f-client-deadline','Client Completion Date','Client requires work completed by this date. Factor into pricing for schedule risk.')">📅 Outlook</button>
+      </div>
+
+    </div>
+
+    <!-- SECTION: SUBMISSION REQUIREMENTS (collapsible) -->
+    <div class="modal-section-title" onclick="toggleSection('submission-req')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+      <span>📋 Submission Requirements</span>
+      <span id="submission-req-arrow" style="font-size:12px;color:var(--muted)">▼ Show</span>
+    </div>
+    <div id="submission-req" style="display:none">
+      <div class="modal-grid" style="margin-bottom:16px">
+        <div class="modal-field"><label>Submission Format</label>
+          <select id="f-sub-format">
+            <option value="">— Select —</option>
+            <option value="email-pdf">Email — PDF attachment</option>
+            <option value="email-link">Email — shared link</option>
+            <option value="in-person">In-person presentation</option>
+            <option value="portal">Client portal / tender system</option>
+            <option value="printed">Printed copies only</option>
+            <option value="email-printed">Email + printed copies</option>
+          </select>
+        </div>
+        <div class="modal-field"><label>Printed Copies Required</label>
+          <select id="f-sub-copies">
+            <option value="0">None</option>
+            <option value="1">1 copy</option>
+            <option value="2">2 copies</option>
+            <option value="3">3 copies</option>
+            <option value="4">4 copies</option>
+            <option value="5+">5+ copies</option>
+          </select>
+        </div>
+        <div class="modal-field"><label>Presentation Required?</label>
+          <select id="f-sub-presentation">
+            <option value="no">No</option>
+            <option value="yes">Yes — in person</option>
+            <option value="virtual">Yes — virtual</option>
+          </select>
+        </div>
+        <div class="modal-field"><label>Reviewer (Name)</label>
+          <input type="text" id="f-reviewer" placeholder="Who is peer reviewing this estimate?" />
+        </div>
+        <div class="modal-field full"><label>Submission Address / Location</label>
+          <input type="text" id="f-sub-location" placeholder="Address, room number, or portal URL..." />
+        </div>
+        <div class="modal-field full"><label>Special Requirements / Notes</label>
+          <textarea id="f-sub-notes" placeholder="Any specific formatting, attachments, cover letter requirements, bid bond, etc..." style="min-height:60px"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section-title">📋 Estimating Process Checklist</div>
+    <div class="checklist" id="proj-checklist"></div>
+
+    <!-- RISKS LOG -->
+    <div class="modal-section-title" style="margin-top:20px;cursor:pointer;display:flex;justify-content:space-between" onclick="toggleSection('risks-section')">
+      <span>🔴 Risks Log</span>
+      <span id="risks-section-arrow" style="font-size:12px;color:var(--muted)">▼ Show</span>
+    </div>
+    <div id="risks-section" style="display:none">
+      <div id="risks-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+      <button onclick="addRiskEntry()" class="btn-sec" style="font-size:12px;padding:6px 14px">+ Add Risk</button>
+    </div>
+
+    <!-- ASSUMPTIONS LOG -->
+    <div class="modal-section-title" style="margin-top:20px;cursor:pointer;display:flex;justify-content:space-between" onclick="toggleSection('assumptions-section')">
+      <span>📝 Assumptions Log</span>
+      <span id="assumptions-section-arrow" style="font-size:12px;color:var(--muted)">▼ Show</span>
+    </div>
+    <div id="assumptions-section" style="display:none">
+      <div id="assumptions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+      <button onclick="addAssumptionEntry()" class="btn-sec" style="font-size:12px;padding:6px 14px">+ Add Assumption</button>
+    </div>
+
+    <!-- BLOCKER LOG -->
+    <div class="modal-section-title" style="margin-top:20px;cursor:pointer;display:flex;justify-content:space-between" onclick="toggleSection('blockers-section')">
+      <span>⚠️ Blockers & Escalations</span>
+      <span id="blockers-section-arrow" style="font-size:12px;color:var(--muted)">▼ Show</span>
+    </div>
+    <div id="blockers-section" style="display:none">
+      <div id="blocker-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+      <button onclick="addBlocker()" class="btn-sec" style="font-size:12px;padding:6px 14px">+ Add Blocker / Escalation</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-save" onclick="saveProject()">Save Project</button>
+      <button class="btn-sec" onclick="closeModal()">Cancel</button>
+      <button class="btn-del" id="btn-delete" onclick="deleteProject()" style="display:none">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const CHECKLIST_TEMPLATE = [
+  // ── CLIENT SETUP — NEW CLIENTS ───────────────────────────────────────────
+  // All tiers — must be done first so it never gets missed
+  { id:'c17', phase:'Client Setup — New Clients', label:'🏢 Client address verified and set up in Jonas',       baseHours: 0.15 },
+  { id:'c18', phase:'Client Setup — New Clients', label:'📋 New client setup forms sent to client',             baseHours: 0.15 },
+  { id:'c19', phase:'Client Setup — New Clients', label:'💳 Credit application sent (if required)',             baseHours: 0.1 },
+  { id:'c20', phase:'Client Setup — New Clients', label:'✅ Credit application received and filed',             baseHours: 0.1 },
+
+  // ── DAY 0 — SAME DAY ─────────────────────────────────────────────────────
+  // All tiers
+  { id:'c1',   phase:'Day 0 — Same Day',           label:'✉️ Acknowledge receipt to client (same business day)', baseHours: 0.1 },
+  { id:'c2',   phase:'Day 0 — Same Day',           label:'📋 Log project in Pipeline',                           baseHours: 0.1 },
+  { id:'c3',   phase:'Day 0 — Same Day',           label:'📁 Create share drive folder & move email',            baseHours: 0.1 },
+
+  // ── DAY 1 — 24HRS ────────────────────────────────────────────────────────
+  // All tiers
+  { id:'c4',   phase:'Day 1 — 24hrs',              label:'🔍 Preliminary scope investigation complete',          baseHours: 0.5, valueBased: true },
+  { id:'c5',   phase:'Day 1 — 24hrs',              label:'📞 First client call — understand constraints',        baseHours: 0.25 },
+  { id:'c6',   phase:'Day 1 — 24hrs',              label:'❓ Determine if site visit is needed',                 baseHours: 0.1 },
+
+  // ── SITE VISIT ───────────────────────────────────────────────────────────
+  // All tiers — if needed
+  { id:'c7',   phase:'Site Visit',                 label:'📅 Site visit booked (if needed)',                     baseHours: 0.1 },
+  { id:'c8',   phase:'Site Visit',                 label:'📸 Site visit completed — photos taken',               baseHours: 1.5 },
+  { id:'c9',   phase:'Site Visit',                 label:'📝 Site visit notes consolidated into project folder', baseHours: 0.5 },
+
+  // ── ESTIMATING — SIMPLE (small jobs only) ────────────────────────────────
+  // Quick jobs: takeoff and materials only — no sub quotes, no scope matrix
+  { id:'c10',  phase:'Estimating',                 label:'📐 Quantity takeoff complete',                         baseHours: 0.5, valueBased: true, smallOnly: true },
+  { id:'c11',  phase:'Estimating',                 label:'💰 Material & labour costs assembled',                 baseHours: 0.5, valueBased: true, smallOnly: true },
+
+  // ── ESTIMATING — ADVANCED (medium + large — 24hr freeze applies) ─────────
+  // Full process: scope matrix, takeoff, RFQs, pricing basis, narrative, checkpoint
+  { id:'s2c1', phase:'Estimating',                 label:'📐 Build Scope Matrix (each requirement mapped to a line item)',            baseHours: 0.5, valueBased: true, mediumLarge: true },
+  { id:'s2c2', phase:'Estimating',                 label:'📊 Complete takeoff/quantities — cross-check against equipment list',       baseHours: 0.5, valueBased: true, mediumLarge: true },
+  { id:'s2c3', phase:'Estimating',                 label:'🔄 Subcontractor quotes requested with clear due date; log all responses',  baseHours: 0.25,                  mediumLarge: true },
+  { id:'s2c4', phase:'Estimating',                 label:'💰 Document pricing basis (quote #, date, source) for major cost drivers',  baseHours: 0.5, valueBased: true, mediumLarge: true },
+  { id:'s2c5', phase:'Estimating',                 label:'📝 Update Assumptions Log and Risks Log as new info arrives',               baseHours: 0.1,                   mediumLarge: true },
+  { id:'s2c6', phase:'Estimating',                 label:'✍️ Draft proposal narrative and exclusions/clarifications',                  baseHours: 0.5, valueBased: true, mediumLarge: true },
+  { id:'s2c7', phase:'Estimating',                 label:'✅ Mid-build checkpoint — on track for freeze? Any blockers?',              baseHours: 0.1,                   mediumLarge: true },
+
+  // ── REVIEW (large + specialty only) ─────────────────────────────────────
+  { id:'c14',  phase:'Review',                     label:'👀 Internal review / pricing sign-off',                baseHours: 1.0, largeOnly: true },
+  { id:'c22',  phase:'Review',                     label:'🔁 Secondary review — Specialty project',              baseHours: 1.0, specialtyOnly: true },
+  { id:'c23',  phase:'Review',                     label:'✅ Final sign-off — Specialty project',                baseHours: 0.5, specialtyOnly: true },
+
+  // ── SUBMISSION — SIMPLE (small jobs only) ────────────────────────────────
+  { id:'c15',  phase:'Submission',                 label:'📤 Quote submitted to client',                         baseHours: 0.5, valueBased: true, smallOnly: true },
+  { id:'c16',  phase:'Submission',                 label:'📆 Follow-up call scheduled post-submission',          baseHours: 0.25,                  smallOnly: true },
+
+  // ── SUBMISSION & PRESENTATION (medium + large) ───────────────────────────
+  // Full pre-submission checklist — applies when freeze gate is in play
+  { id:'s4c1', phase:'Submission & Presentation',  label:'📄 Final PDF verified (open and scroll the whole file)',                   baseHours: 0.1,  mediumLarge: true },
+  { id:'s4c2', phase:'Submission & Presentation',  label:'🖨️ Printed copies completed and physically counted (if required)',        baseHours: 0.1,  mediumLarge: true },
+  { id:'s4c3', phase:'Submission & Presentation',  label:'🖨️ Printer risk removed (paper/toner checked; test print done)',          baseHours: 0.05, mediumLarge: true },
+  { id:'s4c4', phase:'Submission & Presentation',  label:'💾 Digital backup prepared (local + shared; offline copy available)',      baseHours: 0.05, mediumLarge: true },
+  { id:'s4c5', phase:'Submission & Presentation',  label:'📧 Cover email/note prepared (scope summary + assumptions + next steps)',  baseHours: 0.25, valueBased: true, mediumLarge: true },
+  { id:'s4c6', phase:'Submission & Presentation',  label:'📅 Meeting logistics confirmed (time, address, attendees, agenda)',        baseHours: 0.15, largeOnly: true },
+  { id:'s4c7', phase:'Submission & Presentation',  label:'📤 Quote submitted to client',                                             baseHours: 0.1,  mediumLarge: true },
+  { id:'s4c8', phase:'Submission & Presentation',  label:'📆 Follow-up call scheduled post-submission',                             baseHours: 0.05, mediumLarge: true },
+
+  // ── CLOSEOUT & CONTINUITY (large only) ───────────────────────────────────
+  { id:'s5c1', phase:'Closeout & Continuity',      label:'📁 Archive final package and backup in project folder',                   baseHours: 0.1,  largeOnly: true },
+  { id:'s5c2', phase:'Closeout & Continuity',      label:'📝 Create 1-page internal summary (scope, assumptions, risks, ops notes)',baseHours: 0.15, largeOnly: true },
+  { id:'s5c3', phase:'Closeout & Continuity',      label:'🤝 Confirm internal owner for next step and share summary',               baseHours: 0.05, largeOnly: true },
+  { id:'s5c4', phase:'Closeout & Continuity',      label:'🔍 Log any post-submission defects (what happened + prevention step)',    baseHours: 0.1,  largeOnly: true },
+];
+
+// Value tiers
+function getValueTier(value) {
+  if (!value || value < 10000) return 'small';      // under $10K
+  if (value < 50000) return 'medium';               // $10K-$50K
+  return 'large';                                    // $50K+
+}
+
+// Suggest hours based on value
+function autoSuggestHours() {
+  const value = parseFloat(document.getElementById('f-value').value) || 0;
+  const tier = getValueTier(value);
+  const hint = document.getElementById('hours-hint');
+  const hoursEl = document.getElementById('f-hours');
+  if (tier === 'small') { hint.textContent = '↑ Suggested: 1-2 hrs'; if (!hoursEl.value) hoursEl.value = 1.5; }
+  else if (tier === 'medium') { hint.textContent = '↑ Suggested: 2-4 hrs'; if (!hoursEl.value) hoursEl.value = 3; }
+  else { hint.textContent = '↑ Suggested: 6-14 hrs'; if (!hoursEl.value) hoursEl.value = 8; }
+}
+
+// Returns { totalHours, completedHours, pct, remainingHours, atRisk, tier, isSpecialty }
+function getProjectProgress(p) {
+  const value = parseFloat(p.value) || 0;
+  const tier = getValueTier(value);
+  const isLarge = tier === 'large';
+  const isSpecialty = p.priority === 'specialty';
+  const checklist = p.checklist || {};
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let totalHours = 0;
+  let completedHours = 0;
+
+  CHECKLIST_TEMPLATE.forEach(item => {
+    if (item.largeOnly && !isLarge) return;
+    if (item.specialtyOnly && !isSpecialty) return;
+    if (item.mediumLarge && tier === 'small') return;
+    if (item.smallOnly && tier !== 'small') return;
+
+    let hours = item.baseHours;
+    // Value-based items scale with tier
+    if (item.valueBased) {
+      if (tier === 'small') hours = hours * 0.5;
+      else if (tier === 'large') hours = hours * 2;
+    }
+    totalHours += hours;
+    if (checklist[item.id]) completedHours += hours;
+  });
+
+  const remainingHours = Math.max(0, totalHours - completedHours);
+  const pct = totalHours > 0 ? Math.round((completedHours / totalHours) * 100) : 0;
+
+  // Risk: do we have enough working time before deadline?
+  let atRisk = false;
+  if (p.deadline) {
+    const dl = new Date(p.deadline); dl.setHours(0,0,0,0);
+    const daysLeft = Math.max(0, Math.round((dl - today) / 86400000));
+    const hoursAvailable = daysLeft * 6;
+    atRisk = remainingHours > hoursAvailable || dl < today;
+  }
+
+  return {
+    totalHours: totalHours.toFixed(1),
+    completedHours: completedHours.toFixed(1),
+    remainingHours: remainingHours.toFixed(1),
+    pct, atRisk, tier, isLarge, isSpecialty
+  };
+}
+
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUgg_BIYkUHEc9b4wYY1jSQobuiad9hsebLyvpMIU3lD5JoDNQYvB7Z-oxJQ7ZJMgk7A/exec';
+
+let projects = [];
+let editingId = null;
+let activeFilter = 'all';
+let searchQuery = '';
+let isSyncing = false;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function setSyncStatus(msg, color) {
+  let el = document.getElementById('sync-status');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-status';
+    el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-family:var(--mono);font-size:11px;z-index:500;transition:opacity 0.4s';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.color = color || 'var(--muted)';
+  el.style.opacity = '1';
+}
+
+function hideSyncStatus() {
+  const el = document.getElementById('sync-status');
+  if (el) setTimeout(() => el.style.opacity = '0', 2000);
+}
+
+async function loadFromSheets() {
+  setSyncStatus('⟳ Loading from Google Sheets...', 'var(--accent)');
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getAll');
+    const data = await res.json();
+    if (data.projects) {
+      projects = data.projects.map(p => {
+        let cl = p.checklist || {};
+        if (typeof cl === 'string') { try { cl = JSON.parse(cl); } catch { cl = {}; } }
+        const normalized = {};
+        Object.keys(cl).forEach(k => {
+          const v = cl[k];
+          if (v === true || v === 'true' || v === 'TRUE') normalized[k] = true;
+          else normalized[k] = false;
+        });
+        p.checklist = normalized;
+        if (p.deadline) p.deadline = String(p.deadline).substring(0, 10);
+        if (p.clientDeadline) p.clientDeadline = String(p.clientDeadline).substring(0, 10);
+        p.value = parseFloat(p.value) || 0;
+        p.hours = parseFloat(p.hours) || 0;
+        // Parse blockers
+        let bl = p.blockers || '[]';
+        if (typeof bl === 'string') { try { p.blockers = JSON.parse(bl); } catch { p.blockers = []; } }
+        else if (!Array.isArray(bl)) p.blockers = [];
+        // Parse risks
+        let rk = p.risks || '[]';
+        if (typeof rk === 'string') { try { p.risks = JSON.parse(rk); } catch { p.risks = []; } }
+        else if (!Array.isArray(rk)) p.risks = [];
+        // Parse assumptions
+        let as = p.assumptions || '[]';
+        if (typeof as === 'string') { try { p.assumptions = JSON.parse(as); } catch { p.assumptions = []; } }
+        else if (!Array.isArray(as)) p.assumptions = [];
+        return p;
+      });
+    }
+    if (data.tasks) {
+      tasks = data.tasks.map(t => {
+        t.completed = (t.completed === true || t.completed === 'true' || t.completed === 'TRUE');
+        if (t.dueDate) t.dueDate = String(t.dueDate).substring(0, 10);
+        return t;
+      });
+    }
+    if (data.scorecard) {
+      loadScorecardData(data.scorecard);
+    }
+    setSyncStatus('✓ Synced with Google Sheets', 'var(--accent3)');
+    hideSyncStatus();
+    refreshAll();
+  } catch (e) {
+    setSyncStatus('⚠ Could not reach Google Sheets', 'var(--danger)');
+    console.error('Load error:', e);
+  }
+}
+
+async function saveProjects(project) {
+  setSyncStatus('⟳ Saving...', 'var(--accent)');
+  try {
+    // Explicitly serialize checklist as JSON string before sending
+    // This prevents any browser-to-Sheets type conversion issues
+    const payload = { ...project };
+    payload.checklist = JSON.stringify(project.checklist || {});
+
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'save', project: payload }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setSyncStatus('✓ Saved', 'var(--accent3)');
+      hideSyncStatus();
+    } else {
+      setSyncStatus('⚠ Save failed — ' + (data.error || 'unknown error'), 'var(--danger)');
+      console.error('Save failed:', data);
+    }
+  } catch (e) {
+    setSyncStatus('⚠ Could not save — check connection', 'var(--danger)');
+    console.error('Save error:', e);
+  }
+}
+
+async function deleteFromSheets(id) {
+  setSyncStatus('⟳ Deleting...', 'var(--accent)');
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    setSyncStatus('✓ Deleted', 'var(--accent3)');
+    hideSyncStatus();
+  } catch (e) {
+    setSyncStatus('⚠ Could not delete', 'var(--danger)');
+  }
+}
+
+function refreshAll() { renderToday(); renderPipeline(); renderCapacity(); renderSchedule(); renderTasks(); renderAIView(); renderScorecard(); updateTopbar(); updateBadges(); }
+
+// ===================== TASKS =====================
+let tasks = [];
+let taskFilter = 'all';
+let taskCatFilter = 'all';
+
+function openNewTask() {
+  document.getElementById('task-modal-title').textContent = 'New Task';
+  document.getElementById('task-id').value = '';
+  document.getElementById('task-name').value = '';
+  document.getElementById('task-due').value = '';
+  document.getElementById('task-priority').value = 'medium';
+  document.getElementById('task-category').value = 'Admin';
+  document.getElementById('task-notes').value = '';
+  document.getElementById('task-del-btn').style.display = 'none';
+  document.getElementById('task-modal').style.display = 'flex';
+}
+
+function openEditTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  document.getElementById('task-modal-title').textContent = 'Edit Task';
+  document.getElementById('task-id').value = t.id;
+  document.getElementById('task-name').value = t.name || '';
+  document.getElementById('task-due').value = t.dueDate || '';
+  document.getElementById('task-priority').value = t.priority || 'medium';
+  document.getElementById('task-category').value = t.category || 'Admin';
+  document.getElementById('task-notes').value = t.notes || '';
+  document.getElementById('task-del-btn').style.display = 'block';
+  document.getElementById('task-modal').style.display = 'flex';
+}
+
+function closeTaskModal() {
+  document.getElementById('task-modal').style.display = 'none';
+}
+
+async function saveTask() {
+  const id = document.getElementById('task-id').value || 't' + Date.now();
+  const name = document.getElementById('task-name').value.trim();
+  if (!name) { alert('Task name is required'); return; }
+
+  const task = {
+    id,
+    name,
+    dueDate: document.getElementById('task-due').value,
+    priority: document.getElementById('task-priority').value,
+    category: document.getElementById('task-category').value,
+    notes: document.getElementById('task-notes').value.trim(),
+    completed: false,
+    calendarEventId: ''
+  };
+
+  // Preserve completed status if editing
+  const existing = tasks.find(t => t.id === id);
+  if (existing) task.completed = existing.completed;
+
+  // Update local
+  const idx = tasks.findIndex(t => t.id === id);
+  if (idx >= 0) tasks[idx] = task; else tasks.push(task);
+
+  closeTaskModal();
+  renderTasks();
+  updateBadges();
+
+  // Sync to Sheets + Calendar
+  await saveTaskToSheets(task);
+}
+
+async function toggleTaskComplete(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.completed = !task.completed;
+  renderTasks();
+  updateBadges();
+  await saveTaskToSheets(task);
+}
+
+async function deleteTask() {
+  const id = document.getElementById('task-id').value;
+  if (!id) return;
+  if (!confirm('Delete this task?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  closeTaskModal();
+  renderTasks();
+  updateBadges();
+  await deleteTaskFromSheets(id);
+}
+
+async function saveTaskToSheets(task) {
+  setSyncStatus('⟳ Saving task...', 'var(--accent)');
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveTask', task })
+    });
+    const data = await res.json();
+    if (data.calendarEventId) {
+      const t = tasks.find(t => t.id === task.id);
+      if (t) t.calendarEventId = data.calendarEventId;
+    }
+    setSyncStatus('✓ Task saved + Calendar updated', 'var(--accent3)');
+    hideSyncStatus();
+  } catch (e) {
+    setSyncStatus('⚠ Could not save task', 'var(--danger)');
+  }
+}
+
+async function deleteTaskFromSheets(id) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'deleteTask', id })
+    });
+  } catch (e) { console.error('Delete task error:', e); }
+}
+
+function scheduleGate(fieldId, title, description) {
+  const projName = document.getElementById('f-name').value || 'Project';
+  const dateVal = document.getElementById(fieldId)?.value;
+  if (!dateVal) { showToast('Set a date first before scheduling'); return; }
+  const start = dateVal + 'T09:00:00';
+  const end   = dateVal + 'T09:30:00';
+  const subject = encodeURIComponent('[' + projName + '] ' + title);
+  const body = encodeURIComponent('Project: ' + projName + '\n\n' + description);
+  window.open('https://outlook.office.com/calendar/0/deeplink/compose?subject=' + subject + '&startdt=' + start + '&enddt=' + end + '&body=' + body, '_blank');
+}
+
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  const arrow = document.getElementById(id + '-arrow');
+  if (!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▼ Show' : '▲ Hide';
+}
+
+function addTaskToOutlook(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t || !t.dueDate) return;
+  const start = t.dueDate + 'T09:00:00';
+  const end   = t.dueDate + 'T09:30:00';
+  const body = [
+    'Category: ' + (t.category || '—'),
+    'Priority: ' + (t.priority || 'medium').toUpperCase(),
+    t.notes ? 'Notes: ' + t.notes : ''
+  ].filter(Boolean).join('%0A');
+  const url = 'https://outlook.office.com/calendar/0/deeplink/compose?subject=' +
+    encodeURIComponent('[Task] ' + t.name) +
+    '&startdt=' + start +
+    '&enddt=' + end +
+    '&body=' + body;
+  window.open(url, '_blank');
+}
+
+function setTaskFilter(f, btn) {
+  taskFilter = f;
+  document.querySelectorAll('.task-filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function setTaskCat(c, btn) {
+  taskCatFilter = c;
+  document.querySelectorAll('.task-filter-btn[data-cat]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function renderTasks() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const el = document.getElementById('tasks-list');
+  if (!el) return;
+
+  let filtered = [...tasks];
+
+  // Category filter
+  if (taskCatFilter !== 'all') filtered = filtered.filter(t => t.category === taskCatFilter);
+
+  // Status filter
+  if (taskFilter === 'pending') filtered = filtered.filter(t => !t.completed);
+  else if (taskFilter === 'done') filtered = filtered.filter(t => t.completed);
+  else if (taskFilter === 'overdue') filtered = filtered.filter(t => !t.completed && t.dueDate && new Date(t.dueDate) < today);
+
+  // Sort: overdue first, then by due date, then no date
+  filtered.sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+    if (a.dueDate) return -1;
+    if (b.dueDate) return 1;
+    return 0;
+  });
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="tasks-empty"><div style="font-size:40px;margin-bottom:12px">✅</div><div>No tasks here.</div></div>';
+    return;
+  }
+
+  const priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' };
+
+  el.innerHTML = filtered.map(t => {
+    const due = t.dueDate ? new Date(t.dueDate + 'T00:00:00') : null;
+    const isOverdue = due && due < today && !t.completed;
+    const isDueToday = due && due.toDateString() === today.toDateString() && !t.completed;
+    const dueLabel = due ? due.toLocaleDateString('en-CA', { month:'short', day:'numeric', year:'numeric' }) : 'No due date';
+    const rowClass = t.completed ? 'done' : isOverdue ? 'overdue' : isDueToday ? 'due-today' : '';
+
+    return `<div class="task-row ${rowClass}" onclick="openEditTask('${t.id}')">
+      <div class="task-check" onclick="event.stopPropagation();toggleTaskComplete('${t.id}')">${t.completed ? '✓' : ''}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-meta">
+          <span class="task-cat-chip task-cat-${t.category}">${t.category}</span>
+          <span style="font-size:12px">${priorityIcon[t.priority] || '🟡'}</span>
+          <span class="task-due-chip ${isOverdue ? 'overdue' : isDueToday ? 'due-today' : ''}">
+            ${isOverdue ? '⚠ Overdue · ' : isDueToday ? '📅 Due Today · ' : ''}${dueLabel}
+          </span>
+          ${t.calendarEventId ? '<span style="font-size:11px;color:var(--accent3)">📆 In Calendar</span>' : ''}
+        </div>
+        ${t.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:5px">${t.notes}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        ${t.dueDate ? `<button class="task-outlook-btn" onclick="event.stopPropagation();addTaskToOutlook('${t.id}')" title="Add to Outlook Calendar">📅</button>` : ''}
+        <button class="task-edit-btn" onclick="event.stopPropagation();openEditTask('${t.id}')">✏️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===================== LOGIN =====================
+const PASSWORD_HASH = '9e2b5e4e8f1a3c7d2e6f9b4a1c8e5d3f7a2b9c4e6d1f8a3b5c7e9d2f4a6b8c1'; // StartwithwhyMcdavid97
+
+async function hashPassword(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function tryLogin() {
+  const input = document.getElementById('login-input').value;
+  const hash = await hashPassword(input);
+  const correctHash = await hashPassword('10Xbevans');
+  if (hash === correctHash) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-shell').style.display = 'grid';
+    init();
+  } else {
+    document.getElementById('login-error').textContent = 'Incorrect password — try again';
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-input').focus();
+  }
+}
+
+// ===================== INIT =====================
+function init() {
+  const now = new Date();
+  document.getElementById('datechip').textContent = now.toLocaleDateString('en-CA', { weekday:'short', month:'short', day:'numeric' });
+  document.getElementById('today-date-sub').textContent = now.toLocaleDateString('en-CA', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  loadFromSheets();
+  initScorecard();
+  initGrowth();
+}
+function updateTopbar() {
+  const active = projects.filter(p => !['submitted','won','lost'].includes(p.stage));
+  const pct = Math.min(100, Math.round((active.length / 12) * 100));
+  const fill = document.getElementById('topCapFill');
+  fill.style.width = pct + '%';
+  fill.className = 'capacity-fill' + (pct > 90 ? ' danger' : pct > 65 ? ' warn' : '');
+  document.getElementById('topCapLabel').textContent = pct + '%';
+}
+
+function updateBadges() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdue = projects.filter(p => !['submitted','won','lost'].includes(p.stage) && p.deadline && new Date(p.deadline) < today);
+  document.getElementById('badge-today').textContent = overdue.length;
+  document.getElementById('badge-pipeline').textContent = projects.filter(p => !['won','lost'].includes(p.stage)).length;
+  const pendingTasks = tasks.filter(t => !t.completed && (!t.dueDate || new Date(t.dueDate + 'T00:00:00') >= today));
+  const overdueTasks = tasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate + 'T00:00:00') < today);
+  const taskBadge = document.getElementById('badge-tasks');
+  if (taskBadge) taskBadge.textContent = pendingTasks.length + overdueTasks.length;
+}
+
+// ===================== TODAY VIEW =====================
+function renderToday() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const active = projects.filter(p => !['won','lost'].includes(p.stage));
+  const overdue = active.filter(p => p.deadline && new Date(p.deadline) < today);
+  const dueToday = active.filter(p => {
+    if (!p.deadline) return false;
+    const dd = new Date(p.deadline); dd.setHours(0,0,0,0);
+    return dd.getTime() === today.getTime();
+  });
+  document.getElementById('stat-active').textContent = active.length;
+  document.getElementById('stat-overdue').textContent = overdue.length;
+  document.getElementById('stat-today').textContent = dueToday.length;
+
+  // Focus tasks — overdue + today + high priority without next action
+  const focusList = document.getElementById('focus-list');
+  const focusItems = [];
+  overdue.forEach(p => focusItems.push({ p, urgency:'overdue', label:'OVERDUE' }));
+  dueToday.forEach(p => { if (!overdue.find(o=>o.id===p.id)) focusItems.push({ p, urgency:'today', label:'DUE TODAY' }); });
+  active.filter(p => p.priority === 'high' && !overdue.find(o=>o.id===p.id) && !dueToday.find(o=>o.id===p.id)).slice(0,2).forEach(p => focusItems.push({ p, urgency:'soon', label:'HIGH PRIORITY' }));
+
+  if (focusItems.length === 0) {
+    focusList.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div>You\'re clear! No urgent items right now.</div></div>';
+  } else {
+    focusList.innerHTML = focusItems.map(({p,urgency,label}) => {
+      const prog = getProjectProgress(p);
+      const progColor = prog.atRisk ? 'var(--danger)' : prog.pct >= 75 ? 'var(--accent3)' : prog.pct >= 40 ? 'var(--accent)' : 'var(--accent2)';
+      return `<div class="focus-task" onclick="openProject('${p.id}')">
+        <div class="focus-task-body">
+          <div class="focus-task-title">${p.name}${prog.isLarge ? ' <span style="font-size:9px;color:var(--accent);font-family:var(--mono)">★ LARGE</span>' : ''}</div>
+          <div class="focus-task-meta">${p.client || '—'} · ${p.nextAction || 'No next action set'} · <span class="stage-chip stage-${p.stage}">${stageLabel(p.stage)}</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <div style="width:120px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+              <div style="width:${prog.pct}%;height:100%;background:${progColor};border-radius:2px"></div>
+            </div>
+            <span style="font-family:var(--mono);font-size:10px;color:${progColor}">${prog.pct}% complete · ${prog.remainingHours}h remaining</span>
+            ${prog.atRisk ? '<span style="font-size:10px;color:var(--danger);font-family:var(--mono)">⚠ AT RISK</span>' : ''}
+          </div>
+        </div>
+        <div class="urgency ${urgency}">${label}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Upcoming
+  const upcoming = active.filter(p => p.deadline && new Date(p.deadline) >= today).sort((a,b) => new Date(a.deadline)-new Date(b.deadline)).slice(0, 10);
+  const upList = document.getElementById('upcoming-list');
+  if (upcoming.length === 0) {
+    upList.innerHTML = '<div style="color:#b8d4e8;font-size:13px;padding:12px 0">No upcoming deadlines set.</div>';
+  } else {
+    upList.innerHTML = upcoming.map(p => {
+      const dl = new Date(p.deadline); dl.setHours(0,0,0,0);
+      const diff = Math.round((dl - today) / 86400000);
+      const cls = diff === 0 ? 'today' : diff < 0 ? 'overdue' : diff <= 3 ? 'soon' : 'ok';
+      const lbl = diff === 0 ? 'Today' : diff < 0 ? `${Math.abs(diff)}d overdue` : `in ${diff}d`;
+      return `<div class="focus-task" onclick="openProject('${p.id}')">
+        <div class="focus-task-body">
+          <div class="focus-task-title">${p.name}</div>
+          <div class="focus-task-meta">${p.client || '—'} · ${p.nextAction || 'Set next action'}</div>
+        </div>
+        <div class="deadline-text ${cls}" style="font-family:var(--mono);font-size:12px;white-space:nowrap">${lbl}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Tasks due today / overdue
+  const tasksDue = tasks.filter(t => {
+    if (t.completed) return false;
+    if (!t.dueDate) return false;
+    const td = new Date(t.dueDate + 'T00:00:00');
+    return td <= today;
+  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  const todayTasksSection = document.getElementById('today-tasks-section');
+  const todayTasksList = document.getElementById('today-tasks-list');
+  if (tasksDue.length === 0) {
+    if (todayTasksSection) todayTasksSection.style.display = 'none';
+  } else {
+    if (todayTasksSection) todayTasksSection.style.display = 'block';
+    const priorityIcon = { high: '🔴', medium: '🟡', low: '🟢' };
+    todayTasksList.innerHTML = tasksDue.map(t => {
+      const due = new Date(t.dueDate + 'T00:00:00');
+      const isOverdue = due < today;
+      return `<div class="focus-task" onclick="openEditTask('${t.id}')">
+        <div class="task-check" onclick="event.stopPropagation();toggleTaskComplete('${t.id}')" style="width:18px;height:18px;border:2px solid var(--border-bright);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:2px"></div>
+        <div class="focus-task-body">
+          <div class="focus-task-title">${t.name}</div>
+          <div class="focus-task-meta">
+            <span class="task-cat-chip task-cat-${t.category}" style="font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid;margin-right:4px">${t.category}</span>
+            ${isOverdue ? `<span style="color:var(--danger);font-size:11px">⚠ Overdue · ${new Date(t.dueDate).toLocaleDateString('en-CA',{month:'short',day:'numeric'})}</span>` : `<span style="color:var(--accent-bright);font-size:11px">📅 Due Today</span>`}
+          </div>
+        </div>
+        <span style="font-size:14px">${priorityIcon[t.priority] || '🟡'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Growth nudge in Today's Focus
+  const todayKey = new Date().toISOString().substring(0,10);
+  const focusId = localStorage.getItem('jb_daily_focus');
+  const focusDate = localStorage.getItem('jb_daily_focus_date');
+  const growthData = (function(){ try { return JSON.parse(localStorage.getItem('jb_growth')||'{}'); } catch { return {}; } })();
+  const growthNudge = document.getElementById('today-growth-nudge');
+  if (growthNudge) {
+    if (focusId && focusDate === todayKey && growthData[focusId]?.lastDone === todayKey) {
+      growthNudge.innerHTML = `<div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--accent3)">✅ <span>Growth focus done today — well done.</span></div>`;
+    } else if (focusId && focusDate === todayKey) {
+      const g = GROWTH_AREAS.find(x => x.id === focusId);
+      growthNudge.innerHTML = g ? `<div style="font-size:10px;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;color:var(--accent3);margin-bottom:4px">🧠 Today's Growth Focus</div>
+        <div style="font-size:13px;color:#fff;font-weight:500">${g.text}</div>
+        <button onclick="switchViewById('growth')" style="margin-top:8px;background:none;border:1px solid var(--accent3);color:var(--accent3);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:var(--display)">Mark Done →</button>` : '';
+    } else {
+      growthNudge.innerHTML = `<div style="font-size:12px;color:var(--muted)">🧠 No growth focus set today — <button onclick="switchViewById('growth')" style="background:none;border:none;color:var(--accent-bright);cursor:pointer;font-size:12px;font-family:var(--body);text-decoration:underline;padding:0">pick one</button></div>`;
+    }
+  }
+}
+
+function switchViewById(name) {
+  const viewEl = document.getElementById('view-' + name);
+  if (!viewEl) return;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  viewEl.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'" + name + "'")) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+  if (name === 'growth') { renderDailyFocus(); renderGrowthAreas(); }
+}
+
+function stageLabel(s) {
+  return { new:'New RFQ', investigating:'Investigating', 'site-visit':'Site Visit', estimating:'Estimating', submitted:'Submitted', won:'Won', lost:'Lost' }[s] || s;
+}
+
+// ===================== PIPELINE VIEW =====================
+function renderPipeline() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  let filtered = projects.filter(p => {
+    if (activeFilter !== 'all' && p.stage !== activeFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return (p.name||'').toLowerCase().includes(q) || (p.client||'').toLowerCase().includes(q) || (p.nextAction||'').toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  const body = document.getElementById('pipeline-body');
+  if (filtered.length === 0) {
+    body.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">📭</div><div>No projects match this filter.</div></div></td></tr>`;
+    return;
+  }
+
+  body.innerHTML = filtered.map(p => {
+    const dl = p.deadline ? new Date(p.deadline) : null;
+    if (dl) dl.setHours(0,0,0,0);
+    const diff = dl ? Math.round((dl - today) / 86400000) : null;
+    const dlCls = diff === null ? '' : diff < 0 ? 'overdue' : diff <= 3 ? 'soon' : 'ok';
+    const dlLabel = diff === null ? '—' : diff < 0 ? `${Math.abs(diff)}d overdue` : diff === 0 ? 'Today' : `${diff}d`;
+    const valLabel = p.value ? '$' + Number(p.value).toLocaleString() : '—';
+    const prog = getProjectProgress(p);
+    const progColor = prog.atRisk ? 'var(--danger)' : prog.pct >= 75 ? 'var(--accent3)' : prog.pct >= 40 ? 'var(--accent)' : 'var(--accent2)';
+    const priorityDisplay = p.priority === 'specialty' ? '<span style="color:var(--warn)">⭐ Specialty</span>' : `<span class="priority-dot p-${p.priority}" style="vertical-align:middle;margin-right:6px"></span>${p.priority}`;
+    const tierTag = prog.tier === 'large' ? ' <span style="font-size:9px;color:var(--accent-bright);font-family:var(--mono)">$50K+</span>' : prog.tier === 'medium' ? '' : '';
+    return `<tr onclick="openProject('${p.id}')">
+      <td><div class="project-name">${p.name||'—'}</div><div class="project-id">${p.contact ? p.contact : '—'}</div></td>
+      <td><span class="stage-chip stage-${p.stage}">${stageLabel(p.stage)}</span></td>
+      <td>${priorityDisplay}</td>
+      <td><span class="deadline-text ${dlCls}">${dlLabel}</span></td>
+      <td>${valLabel}${tierTag}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:70px;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="width:${prog.pct}%;height:100%;background:${progColor};border-radius:3px"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;color:${progColor}">${prog.pct}%</span>
+          ${prog.atRisk ? '<span style="font-size:10px;color:var(--danger)">⚠</span>' : ''}
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px">${prog.remainingHours}h left</div>
+      </td>
+      <td style="color:#b8d4e8;font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nextAction || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterPipeline(q) { searchQuery = q; renderPipeline(); }
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPipeline();
+}
+
+// ===================== CAPACITY VIEW =====================
+function renderCapacity() {
+  const active = projects.filter(p => !['won','lost'].includes(p.stage));
+  const MAX_PROJECTS = 15;
+  const MAX_ESTIMATING = 15;
+  const MAX_SITE = 4;
+
+  const estimating = active.filter(p => ['estimating','site-visit','investigating','new'].includes(p.stage)).length;
+  const siteVisit = active.filter(p => p.stage === 'site-visit').length;
+
+  // Overall load = total active projects vs max
+  const overallPct = Math.min(100, Math.round((active.length / MAX_PROJECTS) * 100));
+
+  const setBar = (id, lblId, val, max, color) => {
+    const pct = Math.min(100, Math.round((val/max)*100));
+    const el = document.getElementById(id);
+    const lbl = document.getElementById(lblId);
+    if (!el || !lbl) return;
+    el.style.width = pct + '%';
+    el.style.background = pct > 85 ? 'var(--danger)' : pct > 65 ? 'var(--warn)' : color;
+    lbl.textContent = `${val} of ${max} (${pct}%)`;
+  };
+
+  setBar('cap-overall','cap-overall-label', active.length, MAX_PROJECTS, 'var(--accent3)');
+  setBar('cap-active','cap-active-label', estimating, MAX_ESTIMATING, 'var(--accent)');
+  setBar('cap-site','cap-site-label', siteVisit, MAX_SITE, '#bb88ff');
+
+  // Update capacity card labels with explanations
+  const overallCard = document.querySelector('#cap-overall')?.closest('.cap-card');
+  if (overallCard) {
+    const subEl = overallCard.querySelector('.cap-sub');
+    if (!subEl) {
+      const s = document.createElement('div');
+      s.className = 'cap-sub';
+      s.style.cssText = 'font-size:10px;color:var(--muted);margin-top:6px;font-family:var(--mono)';
+      s.textContent = 'Total active projects vs your max of 15';
+      overallCard.appendChild(s);
+    }
+  }
+
+  const detail = document.getElementById('capacity-detail');
+  if (!detail) return;
+
+  const priorityOrder = { specialty: 0, high: 1, medium: 2, low: 3 };
+  const sorted = [...active].sort((a,b) => (priorityOrder[a.priority]??2) - (priorityOrder[b.priority]??2));
+
+  detail.innerHTML = sorted.map(p => {
+    const prog = getProjectProgress(p);
+    const progColor = prog.atRisk ? 'var(--danger)' : prog.pct >= 75 ? 'var(--accent3)' : prog.pct >= 40 ? 'var(--accent)' : 'var(--accent2)';
+    const tierLabel = prog.tier === 'small' ? '<$10K' : prog.tier === 'medium' ? '$10K-$50K' : '$50K+';
+    return `<div class="focus-task" onclick="openProject('${p.id}')">
+      <div class="focus-task-body">
+        <div class="focus-task-title">${p.name} ${prog.isSpecialty?'<span style="color:var(--warn);font-size:10px">⭐ SPECIALTY</span>':''}</div>
+        <div class="focus-task-meta"><span class="stage-chip stage-${p.stage}">${stageLabel(p.stage)}</span> · ${tierLabel} · ${prog.remainingHours}h remaining</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div style="width:140px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+            <div style="width:${prog.pct}%;height:100%;background:${progColor};border-radius:2px"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:10px;color:${progColor}">${prog.pct}% done</span>
+          ${prog.atRisk?'<span style="font-size:10px;color:var(--danger);font-family:var(--mono)">⚠ AT RISK</span>':''}
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right;white-space:nowrap">
+        <div>${p.nextAction ? p.nextAction.substring(0,30)+(p.nextAction.length>30?'…':'') : '—'}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:#b8d4e8;padding:20px;text-align:center">No active projects.</div>';
+}
+
+// ===================== MODAL =====================
+function openNewProject() {
+  editingId = null;
+  document.getElementById('modal-proj-title').textContent = 'New RFQ / Project';
+  document.getElementById('modal-proj-meta').textContent = 'Fill in what you know — update as you learn more';
+  document.getElementById('btn-delete').style.display = 'none';
+  clearForm();
+  renderChecklist({});
+  renderRisks([]);
+  renderAssumptions([]);
+  renderBlockers([]);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openProject(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('modal-proj-title').textContent = p.name || 'Project Detail';
+  document.getElementById('modal-proj-meta').textContent = `${p.contact||'No contact'} · ${p.contactInfo||'—'} · ID: ${id}`;
+  document.getElementById('btn-delete').style.display = 'block';
+  document.getElementById('f-name').value = p.name||'';
+  document.getElementById('f-contact').value = p.contact||'';
+  document.getElementById('f-contact-info').value = p.contactInfo||'';
+  document.getElementById('f-stage').value = p.stage||'new';
+  document.getElementById('f-priority').value = p.priority||'medium';
+  // Fix date loading — strip any time component Google Sheets might add
+  document.getElementById('f-deadline').value = (p.deadline||'').toString().substring(0,10);
+  document.getElementById('f-client-deadline').value = (p.clientDeadline||'').toString().substring(0,10);
+  document.getElementById('f-value').value = p.value||'';
+  document.getElementById('f-hours').value = p.hours||'';
+  document.getElementById('f-folder').value = p.folder||'';
+  document.getElementById('f-scope').value = p.scope||'';
+  document.getElementById('f-notes').value = p.notes||'';
+  document.getElementById('f-next').value = p.nextAction||'';
+  // New date gate fields
+  if (document.getElementById('f-freeze-date')) document.getElementById('f-freeze-date').value = (p.freezeDate||'').substring(0,10);
+  if (document.getElementById('f-subready-date')) document.getElementById('f-subready-date').value = (p.subReadyDate||'').substring(0,10);
+  if (document.getElementById('f-review-date')) document.getElementById('f-review-date').value = (p.reviewDate||'').substring(0,10);
+  if (document.getElementById('f-sitevisit-date')) document.getElementById('f-sitevisit-date').value = (p.siteVisitDate||'').substring(0,10);
+  if (document.getElementById('f-rfq-deadline')) document.getElementById('f-rfq-deadline').value = (p.rfqDeadline||'').substring(0,10);
+  if (document.getElementById('f-followup-date')) document.getElementById('f-followup-date').value = (p.followupDate||'').substring(0,10);
+  // Submission requirements
+  if (document.getElementById('f-sub-format')) document.getElementById('f-sub-format').value = p.subFormat||'';
+  if (document.getElementById('f-sub-copies')) document.getElementById('f-sub-copies').value = p.subCopies||'0';
+  if (document.getElementById('f-sub-presentation')) document.getElementById('f-sub-presentation').value = p.subPresentation||'no';
+  if (document.getElementById('f-reviewer')) document.getElementById('f-reviewer').value = p.reviewer||'';
+  if (document.getElementById('f-sub-location')) document.getElementById('f-sub-location').value = p.subLocation||'';
+  if (document.getElementById('f-sub-notes')) document.getElementById('f-sub-notes').value = p.subNotes||'';
+  // Parse checklist robustly — handle string, object, TRUE/FALSE caps from Sheets
+  let cl = p.checklist || {};
+  if (typeof cl === 'string') {
+    try { cl = JSON.parse(cl); } catch { cl = {}; }
+  }
+  // Normalize booleans — Google Sheets returns TRUE/FALSE as strings in some contexts
+  const normalizedCl = {};
+  Object.keys(cl).forEach(k => {
+    const v = cl[k];
+    normalizedCl[k] = (v === true || v === 'true' || v === 'TRUE');
+  });
+  renderChecklist(normalizedCl);
+  // Load risks and assumptions
+  let risks = p.risks || [];
+  if (typeof risks === 'string') { try { risks = JSON.parse(risks); } catch { risks = []; } }
+  renderRisks(risks);
+
+  let assumptions = p.assumptions || [];
+  if (typeof assumptions === 'string') { try { assumptions = JSON.parse(assumptions); } catch { assumptions = []; } }
+  renderAssumptions(assumptions);
+
+  // Load blockers
+  let bl = p.blockers || [];
+  if (typeof bl === 'string') { try { bl = JSON.parse(bl); } catch { bl = []; } }
+  renderBlockers(bl);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function clearForm() {
+  ['f-name','f-contact','f-contact-info','f-deadline','f-client-deadline','f-folder','f-scope','f-notes','f-next',
+   'f-freeze-date','f-subready-date','f-review-date','f-sitevisit-date','f-rfq-deadline','f-followup-date',
+   'f-reviewer','f-sub-location','f-sub-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('f-stage').value = 'new';
+  document.getElementById('f-priority').value = 'medium';
+  document.getElementById('f-value').value = '';
+  document.getElementById('f-hours').value = '';
+  if (document.getElementById('f-sub-format')) document.getElementById('f-sub-format').value = '';
+  if (document.getElementById('f-sub-copies')) document.getElementById('f-sub-copies').value = '0';
+  if (document.getElementById('f-sub-presentation')) document.getElementById('f-sub-presentation').value = 'no';
+  if (document.getElementById('hours-hint')) document.getElementById('hours-hint').textContent = '';
+  // Collapse submission requirements
+  const sr = document.getElementById('submission-req');
+  if (sr) { sr.style.display = 'none'; const a = document.getElementById('submission-req-arrow'); if (a) a.textContent = '▼ Show'; }
+}
+
+function renderChecklist(state) {
+  const cl = document.getElementById('proj-checklist');
+  const priority = document.getElementById('f-priority')?.value || 'medium';
+  const value = parseFloat(document.getElementById('f-value')?.value) || 0;
+  const tier = getValueTier(value);
+  const isSmall = tier === 'small';
+  const isLarge = tier === 'large';
+  const isSpecialty = priority === 'specialty';
+
+  // Show tier badge above checklist
+  const tierLabels = { small: '⚫ Small job — simplified checklist (<$10K)', medium: '🟡 Medium job — full process with freeze ($10K–$50K)', large: '🔴 Large job — full process + review + closeout ($50K+)' };
+  const tierColors = { small: 'var(--muted)', medium: 'var(--warn)', large: 'var(--danger)' };
+  const badge = `<div style="font-size:10px;font-family:var(--display);color:${tierColors[tier]};text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid var(--border)">${tierLabels[tier]}${isSpecialty ? ' · ⭐ Specialty' : ''}</div>`;
+
+  let lastPhase = '';
+  const items = CHECKLIST_TEMPLATE.map(item => {
+    if (item.largeOnly && !isLarge) return '';
+    if (item.specialtyOnly && !isSpecialty) return '';
+    if (item.mediumLarge && isSmall) return '';
+    if (item.smallOnly && !isSmall) return '';
+
+    const done = state[item.id] === true || state[item.id] === 'true';
+    let phaseHeader = '';
+    if (item.phase !== lastPhase) {
+      const finalPhase = isLarge ? 'Closeout & Continuity' : isSmall ? 'Submission' : 'Submission & Presentation';
+      const showDefect = item.phase === finalPhase;
+      phaseHeader = `<div style="font-size:10px;font-family:var(--mono);color:var(--accent-bright);text-transform:uppercase;letter-spacing:1px;margin:12px 0 4px;padding-top:4px;display:flex;justify-content:space-between;align-items:center">
+        <span>${item.phase}</span>
+        ${showDefect ? `<button onclick="logDefectToScorecard()" style="background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.3);color:var(--danger);border-radius:5px;padding:2px 8px;font-size:10px;font-family:var(--display);cursor:pointer;letter-spacing:0.5px" title="Log a defect to this week's scorecard">+ Log Defect</button>` : ''}
+      </div>`;
+      lastPhase = item.phase;
+    }
+    return `${phaseHeader}<div class="check-item ${done?'done':''}" data-id="${item.id}">
+      <div class="check-box" onclick="toggleCheck(this)">${done?'✓':''}</div>
+      <div class="check-label" onclick="toggleCheck(this.previousElementSibling)">${item.label}</div>
+      <button class="checklist-outlook-btn" title="Schedule in Outlook" onclick="scheduleChecklistItem('${item.id}','${item.label.replace(/'/g,"\\'")}','${item.phase.replace(/'/g,"\\'")}')">📅</button>
+    </div>`;
+  }).join('');
+
+  cl.innerHTML = badge + items;
+}
+
+function toggleCheck(el) {
+  // el could be the check-box or the check-item div
+  const item = el.classList.contains('check-item') ? el : el.closest('.check-item');
+  if (!item) return;
+  item.classList.toggle('done');
+  const box = item.querySelector('.check-box');
+  box.textContent = item.classList.contains('done') ? '✓' : '';
+}
+
+function scheduleChecklistItem(itemId, label, phase) {
+  const projName = document.getElementById('f-name').value || 'Project';
+  const deadline = document.getElementById('f-deadline').value;
+  // Default to deadline date or today
+  const startDate = deadline || new Date().toISOString().substring(0, 10);
+  const start = startDate + 'T09:00:00';
+  const end   = startDate + 'T09:30:00';
+  const subject = encodeURIComponent('[' + projName + '] ' + label.replace(/^[^\w\s]/,'').trim());
+  const body = encodeURIComponent('Project: ' + projName + '\nStage: ' + phase + '\nChecklist item: ' + label.replace(/^[^\w\s]/,'').trim());
+  const url = 'https://outlook.office.com/calendar/0/deeplink/compose?subject=' + subject + '&startdt=' + start + '&enddt=' + end + '&body=' + body;
+  window.open(url, '_blank');
+}
+
+function getChecklistState() {
+  const state = {};
+  document.querySelectorAll('#proj-checklist .check-item').forEach(el => {
+    const id = el.getAttribute('data-id');
+    if (id) state[id] = el.classList.contains('done');
+  });
+  return state;
+}
+
+async function saveProject() {
+  // Fix dates — ensure stored as YYYY-MM-DD string, not Date object
+  const rawDeadline = document.getElementById('f-deadline').value;
+  const rawClientDeadline = document.getElementById('f-client-deadline').value;
+
+  const p = {
+    id: editingId || uid(),
+    name: document.getElementById('f-name').value,
+    client: '', // removed for security — kept in schema for compatibility
+    contact: document.getElementById('f-contact').value,
+    contactInfo: document.getElementById('f-contact-info').value,
+    stage: document.getElementById('f-stage').value,
+    priority: document.getElementById('f-priority').value,
+    deadline: rawDeadline || '',
+    clientDeadline: rawClientDeadline || '',
+    // Auto-stamp submittedAt when stage first moves to submitted
+    submittedAt: (() => {
+      const newStage = document.getElementById('f-stage').value;
+      const existing = editingId ? (projects.find(x => x.id === editingId) || {}) : {};
+      if (newStage === 'submitted' && existing.stage !== 'submitted') {
+        return new Date().toISOString().substring(0, 10);
+      }
+      return existing.submittedAt || '';
+    })(),
+    value: parseFloat(document.getElementById('f-value').value)||0,
+    hours: parseFloat(document.getElementById('f-hours').value)||0,
+    folder: document.getElementById('f-folder').value,
+    scope: document.getElementById('f-scope').value,
+    notes: document.getElementById('f-notes').value,
+    nextAction: document.getElementById('f-next').value,
+    freezeDate: document.getElementById('f-freeze-date')?.value || '',
+    subReadyDate: document.getElementById('f-subready-date')?.value || '',
+    reviewDate: document.getElementById('f-review-date')?.value || '',
+    siteVisitDate: document.getElementById('f-sitevisit-date')?.value || '',
+    rfqDeadline: document.getElementById('f-rfq-deadline')?.value || '',
+    followupDate: document.getElementById('f-followup-date')?.value || '',
+    subFormat: document.getElementById('f-sub-format')?.value || '',
+    subCopies: document.getElementById('f-sub-copies')?.value || '0',
+    subPresentation: document.getElementById('f-sub-presentation')?.value || 'no',
+    reviewer: document.getElementById('f-reviewer')?.value || '',
+    subLocation: document.getElementById('f-sub-location')?.value || '',
+    subNotes: document.getElementById('f-sub-notes')?.value || '',
+    checklist: getChecklistState(),
+    blockers: getBlockersState(),
+    risks: getRisksState(),
+    assumptions: getAssumptionsState(),
+  };
+  if (editingId) {
+    const idx = projects.findIndex(x => x.id === editingId);
+    if (idx > -1) projects[idx] = p;
+  } else {
+    projects.unshift(p);
+  }
+  closeModal();
+  refreshAll();
+  await saveProjects(p);
+}
+
+async function deleteProject() {
+  if (!editingId) return;
+  if (!confirm('Remove this project from your dashboard?')) return;
+  const id = editingId;
+  projects = projects.filter(p => p.id !== id);
+  closeModal();
+  refreshAll();
+  await deleteFromSheets(id);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingId = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+// ===================== NAV =====================
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  refreshAll();
+}
+
+// ===================== AI ASSISTANT =====================
+
+function renderAIView() {
+  const sel = document.getElementById('ai-project-select');
+  if (!sel) return;
+  const current = sel.value;
+  const active = projects.filter(p => !['won','lost'].includes(p.stage));
+  sel.innerHTML = '<option value="">— Select a project —</option>' +
+    active.map(p => `<option value="${p.id}" ${p.id === current ? 'selected' : ''}>${p.name} · ${stageLabel(p.stage)}</option>`).join('');
+
+  // Load saved API key
+  const savedKey = sessionStorage.getItem('edl_claude_key') || localStorage.getItem('edl_claude_key');
+  if (savedKey) {
+    document.getElementById('ai-api-key').value = savedKey;
+    document.getElementById('api-key-status').textContent = '✓ API key loaded';
+    document.getElementById('api-key-status').style.color = 'var(--accent3)';
+  }
+}
+
+function saveAPIKey() {
+  const key = document.getElementById('ai-api-key').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('api-key-status').textContent = '⚠ That doesn\'t look right — key should start with sk-ant-';
+    document.getElementById('api-key-status').style.color = 'var(--danger)';
+    return;
+  }
+  localStorage.setItem('edl_claude_key', key);
+  document.getElementById('api-key-status').textContent = '✓ Key saved — you won\'t need to enter it again';
+  document.getElementById('api-key-status').style.color = 'var(--accent3)';
+  showToast('API key saved!');
+}
+
+function loadAIProject() {
+  const id = document.getElementById('ai-project-select').value;
+  const summary = document.getElementById('ai-project-summary');
+  if (!id) { summary.style.display = 'none'; return; }
+  const p = projects.find(p => p.id === id);
+  if (!p) return;
+  summary.style.display = 'block';
+  summary.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+      <div><span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Project</span><br><strong>${p.name}</strong></div>
+      <div><span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Stage</span><br><strong>${stageLabel(p.stage)}</strong></div>
+      <div><span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Value</span><br><strong>${p.value ? '$' + Number(p.value).toLocaleString() : '—'}</strong></div>
+      <div><span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Contact</span><br><strong>${p.contact || '—'}</strong></div>
+      ${p.scope ? `<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Scope</span><br>${p.scope}</div>` : ''}
+      ${p.notes ? `<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px">Notes</span><br>${p.notes}</div>` : ''}
+    </div>
+  `;
+}
+
+async function generateQuoteLetter() {
+  const apiKey = localStorage.getItem('edl_claude_key') || document.getElementById('ai-api-key').value.trim();
+  if (!apiKey) {
+    showToast('⚠ Enter and save your API key first');
+    document.getElementById('ai-api-key').focus();
+    return;
+  }
+
+  const id = document.getElementById('ai-project-select').value;
+  const extraContext = document.getElementById('ai-context').value.trim();
+  const btn = document.getElementById('ai-generate-btn');
+  const outputSection = document.getElementById('ai-output-section');
+  const outputEl = document.getElementById('ai-output');
+  const loadingEl = document.getElementById('ai-loading');
+
+  let projectInfo = '';
+  if (id) {
+    const p = projects.find(p => p.id === id);
+    if (p) {
+      projectInfo = `
+PROJECT DETAILS:
+- Project Code: ${p.name}
+- Contact Name: ${p.contact || 'Not specified'}
+- Contact Info: ${p.contactInfo || 'Not specified'}
+- Project Value: ${p.value ? '$' + Number(p.value).toLocaleString() : 'Not specified'}
+- Stage: ${stageLabel(p.stage)}
+- Scope of Work: ${p.scope || 'Not specified'}
+- Notes: ${p.notes || 'None'}
+- Quote Deadline: ${p.deadline || 'Not specified'}`;
+    }
+  }
+
+  const prompt = `You are a professional Senior Estimator at a commercial HVAC, plumbing, and electrical services company based in Western Canada with almost 5 decades of experience.
+
+Write a complete, professional quote letter for the following project. The letter should:
+- Be formal but warm in tone
+- Open with a brief introduction referencing the company's expertise and reliability
+- Clearly describe the scope of work
+- Present the pricing clearly and professionally  
+- Include standard commercial terms (net 30, quote validity of 30 days, exclusions if relevant)
+- Close with a strong call to action and contact info placeholder
+- Be ready to send with minimal editing
+
+${projectInfo}
+${extraContext ? '\nADDITIONAL CONTEXT FROM ESTIMATOR:\n' + extraContext : ''}
+
+Format the letter professionally. Use [PLACEHOLDER] for any info that needs to be filled in.`;
+
+  outputSection.style.display = 'block';
+  outputEl.textContent = '';
+  loadingEl.style.display = 'block';
+  btn.disabled = true;
+  btn.textContent = '⟳ Generating...';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    loadingEl.style.display = 'none';
+    if (data.content && data.content[0]) {
+      outputEl.textContent = data.content[0].text;
+    } else if (data.error) {
+      outputEl.textContent = '⚠ API Error: ' + data.error.message;
+    }
+  } catch (e) {
+    loadingEl.style.display = 'none';
+    outputEl.textContent = '⚠ Connection error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 Generate Full Quote Letter';
+  }
+}
+
+function copyAIOutput() {
+  const text = document.getElementById('ai-output').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('Quote letter copied to clipboard!');
+}
+
+function clearAIOutput() {
+  document.getElementById('ai-output').textContent = '';
+  document.getElementById('ai-output-section').style.display = 'none';
+  document.getElementById('ai-context').value = '';
+}
+
+// ===================== GROWTH / R3 =====================
+
+const GROWTH_AREAS = [
+  {
+    id: 'g1',
+    category: 'Decision Making',
+    color: '#ef4444',
+    text: 'Make one decision today without waiting for more data',
+    why: 'Your R3 identifies "analysis-paralysis" as your primary blind spot — always waiting for more information before deciding. The antidote is practising commitment on small decisions first. Set a timer. Decide. Move.',
+    streak: 0
+  },
+  {
+    id: 'g2',
+    category: 'Decision Making',
+    color: '#ef4444',
+    text: 'When you second-guess a decision you\'ve already made — stop and hold the line',
+    why: 'You tend to revisit decisions after they\'re made, especially under pressure. Notice the moment you start to re-open a closed decision and consciously choose to stand behind it unless new facts emerge.',
+    streak: 0
+  },
+  {
+    id: 'g3',
+    category: 'Assertiveness',
+    color: '#f97316',
+    text: 'Voice your opinion in a meeting even if it goes against the group',
+    why: 'Your report flags that you don\'t like to make waves and stay quiet when your view differs from the group. This costs you influence. Pick one moment today where you say what you actually think.',
+    streak: 0
+  },
+  {
+    id: 'g4',
+    category: 'Assertiveness',
+    color: '#f97316',
+    text: 'Push back on an unrealistic expectation from a supervisor or colleague',
+    why: 'Your Stabilizer energy makes you want to accommodate. Your report specifically says to stand up for yourself with supervisors rather than avoiding or pretending to go along. One clear, calm pushback today.',
+    streak: 0
+  },
+  {
+    id: 'g5',
+    category: 'Assertiveness',
+    color: '#f97316',
+    text: 'In your next meeting, assert yourself at least once before the 10-minute mark',
+    why: 'Your profile notes you tend to be less talkative in larger groups and difficult to get to know. Early contribution signals confidence and changes how others perceive you in the room.',
+    streak: 0
+  },
+  {
+    id: 'g6',
+    category: 'Communication & Openness',
+    color: '#38bdf8',
+    text: 'Share a concern, feeling, or need with a coworker before the end of the day',
+    why: 'Your report calls out that you don\'t openly share feelings and concerns — especially under stress. This creates distance and makes you seem withdrawn. One honest disclosure today builds trust.',
+    streak: 0
+  },
+  {
+    id: 'g7',
+    category: 'Communication & Openness',
+    color: '#38bdf8',
+    text: 'Warm up to someone you don\'t know well — go first, don\'t wait for them',
+    why: 'Your profile says you can be somewhat difficult to get to know on a personal level. Warmer first impressions expand your influence. Engage in one piece of genuine supportive conversation today.',
+    streak: 0
+  },
+  {
+    id: 'g8',
+    category: 'Communication & Openness',
+    color: '#38bdf8',
+    text: 'Explain your reasoning out loud when you make a decision today',
+    why: 'Your R3 notes that when you don\'t share reasoning, your decisions seem arbitrary to others. Narrating your logic — even briefly — builds credibility and reduces friction with Drivers and Influencers.',
+    streak: 0
+  },
+  {
+    id: 'g9',
+    category: 'Accountability',
+    color: '#facc15',
+    text: 'Own something that went wrong today — out loud, without qualifying it',
+    why: 'Your report flags a tendency to avoid taking responsibility for problems and failures. A clean "I got that wrong, here\'s what I\'ll do differently" is one of the fastest ways to build trust with leadership.',
+    streak: 0
+  },
+  {
+    id: 'g10',
+    category: 'Flexibility',
+    color: '#a78bfa',
+    text: 'Identify one place where you\'re holding a rule that could flex — and flex it',
+    why: 'Your profile identifies a tendency to be too locked into rules and procedures when flexibility is needed. Rules are useful defaults, not absolute laws. One conscious deviation today builds adaptability.',
+    streak: 0
+  },
+  {
+    id: 'g11',
+    category: 'Flexibility',
+    color: '#a78bfa',
+    text: 'Say yes to one approach that isn\'t how you would normally do it',
+    why: 'You\'re skeptical of change when the alternative is unfamiliar or unproven. Deliberately choosing someone else\'s method — even once — expands your operating range and builds team trust.',
+    streak: 0
+  },
+  {
+    id: 'g12',
+    category: 'Stress Response',
+    color: '#fb7185',
+    text: 'When you feel yourself going quiet under pressure today — say something instead',
+    why: 'Under stress your instinct is to withdraw and go headstrong internally. This is invisible to others and creates confusion. One sentence out loud — "I\'m processing, give me 5 minutes" — changes the dynamic entirely.',
+    streak: 0
+  },
+  {
+    id: 'g13',
+    category: 'Stress Response',
+    color: '#fb7185',
+    text: 'Notice when you\'re being fussy or inflexible and name it to yourself',
+    why: 'Your R3 notes that under stress others may perceive you as anxious, indecisive, fussy, or inflexible — even when you see yourself as thorough and quality-focused. Self-awareness in the moment is the first step.',
+    streak: 0
+  },
+  {
+    id: 'g14',
+    category: 'Team & Relationships',
+    color: '#34d399',
+    text: 'Acknowledge someone\'s contribution specifically — not generically',
+    why: 'Your lowest energy is Influencer — spontaneous recognition doesn\'t come naturally. But your Stabilizer core means you deeply value loyalty and contribution. Expressing that clearly strengthens your team.',
+    streak: 0
+  },
+  {
+    id: 'g15',
+    category: 'Team & Relationships',
+    color: '#34d399',
+    text: 'Deliberately include someone with a different work style in a decision or discussion',
+    why: 'Your profile notes you tend to select people similar to you when forming teams. Diverse styles — especially high Drivers and Influencers — sharpen your blind spots and speed up execution.',
+    streak: 0
+  },
+];
+
+function renderGrowthAreas() {
+  const list = document.getElementById('growth-areas-list');
+  if (!list) return;
+
+  const saved = getGrowthData();
+  const todayKey = new Date().toISOString().substring(0, 10);
+
+  list.innerHTML = GROWTH_AREAS.map(g => {
+    const data = saved[g.id] || {};
+    const streak = data.streak || 0;
+    const lastDone = data.lastDone || '';
+    const isToday = lastDone === todayKey;
+
+    return `<div class="growth-area-card ${isToday ? 'growth-done' : ''}" onclick="selectGrowthFocus('${g.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1">
+          <div style="font-size:10px;font-family:var(--display);text-transform:uppercase;letter-spacing:1px;color:${g.color};margin-bottom:5px">${g.category}</div>
+          <div style="font-size:13px;color:#fff;font-weight:500;line-height:1.5">${g.text}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.6">${g.why}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+          ${isToday ? '<span style="font-size:18px">✅</span>' : '<span style="font-size:18px;opacity:0.3">○</span>'}
+          ${streak > 0 ? `<span style="font-size:10px;color:${g.color};font-weight:700">${streak}🔥</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getGrowthData() {
+  try { return JSON.parse(localStorage.getItem('jb_growth') || '{}'); } catch { return {}; }
+}
+
+function saveGrowthData(data) {
+  localStorage.setItem('jb_growth', JSON.stringify(data));
+}
+
+function selectGrowthFocus(id) {
+  const todayKey = new Date().toISOString().substring(0, 10);
+  const saved = getGrowthData();
+  if (saved[id]?.lastDone === todayKey) return; // already done
+
+  localStorage.setItem('jb_daily_focus', id);
+  localStorage.setItem('jb_daily_focus_date', todayKey);
+  renderDailyFocus();
+  renderGrowthAreas();
+
+  // Scroll to top of growth view
+  const card = document.getElementById('daily-focus-card');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderDailyFocus() {
+  const todayKey = new Date().toISOString().substring(0, 10);
+  const focusId = localStorage.getItem('jb_daily_focus');
+  const focusDate = localStorage.getItem('jb_daily_focus_date');
+  const card = document.getElementById('daily-focus-card');
+  const empty = document.getElementById('daily-focus-empty');
+  const doneMsg = document.getElementById('daily-focus-done-msg');
+
+  if (!card || !empty || !doneMsg) return;
+
+  const saved = getGrowthData();
+
+  // Check if today's focus is already completed
+  if (focusId && focusDate === todayKey && saved[focusId]?.lastDone === todayKey) {
+    card.style.display = 'none';
+    empty.style.display = 'none';
+    doneMsg.style.display = 'block';
+    return;
+  }
+
+  if (!focusId || focusDate !== todayKey) {
+    card.style.display = 'none';
+    empty.style.display = 'block';
+    doneMsg.style.display = 'none';
+    return;
+  }
+
+  const g = GROWTH_AREAS.find(x => x.id === focusId);
+  if (!g) return;
+
+  card.style.display = 'block';
+  empty.style.display = 'none';
+  doneMsg.style.display = 'none';
+  card.style.borderColor = g.color;
+
+  document.getElementById('daily-focus-category').textContent = g.category;
+  document.getElementById('daily-focus-category').style.color = g.color;
+  document.getElementById('daily-focus-text').textContent = g.text;
+  document.getElementById('daily-focus-why').textContent = g.why;
+}
+
+function markFocusDone() {
+  const focusId = localStorage.getItem('jb_daily_focus');
+  if (!focusId) return;
+  const todayKey = new Date().toISOString().substring(0, 10);
+  const data = getGrowthData();
+  const prev = data[focusId] || {};
+  const prevDate = prev.lastDone || '';
+
+  // Calculate streak
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().substring(0, 10);
+  const streak = (prevDate === yesterdayKey) ? (prev.streak || 0) + 1 : 1;
+
+  data[focusId] = { lastDone: todayKey, streak };
+  saveGrowthData(data);
+  renderDailyFocus();
+  renderGrowthAreas();
+  showToast('✅ Growth focus marked complete — great work today');
+}
+
+function clearDailyFocus() {
+  localStorage.removeItem('jb_daily_focus');
+  localStorage.removeItem('jb_daily_focus_date');
+  renderDailyFocus();
+}
+
+function initGrowth() {
+  renderDailyFocus();
+  renderGrowthAreas();
+}
+
+// ===================== SCORECARD & MILESTONES =====================
+
+function initScorecard() {
+  loadMilestones();
+  renderScorecard();
+}
+
+function saveMilestones() {
+  const statuses = [];
+  document.querySelectorAll('.milestone-status').forEach(sel => statuses.push(sel.value));
+  localStorage.setItem('jb_milestones', JSON.stringify(statuses));
+}
+
+function loadMilestones() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('jb_milestones') || '[]');
+    document.querySelectorAll('.milestone-status').forEach((sel, i) => {
+      if (saved[i]) sel.value = saved[i];
+    });
+  } catch(e) {}
+}
+
+let scorecardData = [];
+
+function loadScorecardData(rows) {
+  // Called with data from getAll() response — no separate fetch needed
+  if (rows && Array.isArray(rows)) {
+    scorecardData = rows.map(r => ({
+      weekOf:     String(r.weekOf     || ''),
+      numEst:     String(r.numEst     || ''),
+      stageGate:  String(r.stageGate  || ''),
+      peerReview: String(r.peerReview || ''),
+      freeze:     String(r.freeze     || ''),
+      subReady:   String(r.subReady   || ''),
+      defects:    String(r.defects    || ''),
+      notes:      String(r.notes      || ''),
+      autoCalc:   r.autoCalc === 'true' || r.autoCalc === true
+    }));
+    // Sort newest first
+    scorecardData.sort((a, b) => b.weekOf.localeCompare(a.weekOf));
+  }
+}
+
+async function saveScorecardRow(row) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveScorecard', row })
+    });
+  } catch(e) {
+    console.warn('Scorecard save failed — data still in memory for this session', e);
+  }
+}
+
+async function deleteScorecardRowRemote(weekOf) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'deleteScorecard', weekOf })
+    });
+  } catch(e) {
+    console.warn('Scorecard delete failed', e);
+  }
+}
+
+function logDefectToScorecard() {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(today);
+  monday.setDate(diff);
+  const weekOf = monday.toISOString().substring(0, 10);
+
+  let row = scorecardData.find(w => w.weekOf === weekOf);
+  if (!row) {
+    const auto = autoCalculateWeek(weekOf);
+    row = {
+      weekOf,
+      numEst:     auto.numEst !== undefined ? String(auto.numEst) : '',
+      stageGate:  auto.stageGate !== '' ? String(auto.stageGate) : '',
+      peerReview: auto.peerReview !== '' ? String(auto.peerReview) : '',
+      freeze:     auto.freeze !== '' ? String(auto.freeze) : '',
+      subReady:   auto.subReady !== '' ? String(auto.subReady) : '',
+      defects:    '1',
+      notes:      auto.projectNames ? 'Auto: ' + auto.projectNames : '',
+      autoCalc:   true
+    };
+    scorecardData.unshift(row);
+  } else {
+    const current = parseInt(row.defects) || 0;
+    row.defects = String(current + 1);
+  }
+  saveScorecardRow(row);
+  renderScorecard();
+  showToast('⚠ Defect logged to this week\'s scorecard — ' + row.defects + ' total');
+}
+
+function getWeekRange(mondayStr) {
+  const monday = new Date(mondayStr + 'T00:00:00');
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { monday, sunday };
+}
+
+function autoCalculateWeek(weekOf) {
+  const { monday, sunday } = getWeekRange(weekOf);
+
+  // Projects submitted this week — use submittedAt if available, fall back to deadline
+  const submitted = projects.filter(p => {
+    const dateStr = p.submittedAt || p.deadline;
+    if (!dateStr) return false;
+    const d = new Date(dateStr + 'T00:00:00');
+    return d >= monday && d <= sunday && ['submitted','won','lost'].includes(p.stage);
+  });
+
+  const total = submitted.length;
+  if (total === 0) return { numEst: 0, stageGate: '', peerReview: '', freeze: '', subReady: '', defects: '', auto: true };
+
+  // Peer review — any Review phase item ticked (c14, c22, c23) OR large/specialty review done
+  const peerDone = submitted.filter(p => {
+    const cl = p.checklist || {};
+    const value = parseFloat(p.value) || 0;
+    // For small jobs — no peer review required, count as passed
+    if (value < 10000) return true;
+    // For large/specialty — check c14 (internal review sign-off)
+    return cl['c14'] === true || cl['c14'] === 'true';
+  }).length;
+
+  // Freeze gate — freezeDate was set AND was on or before deadline
+  const freezeHit = submitted.filter(p => {
+    if (!p.freezeDate || !p.deadline) return false;
+    return p.freezeDate <= p.deadline;
+  }).length;
+
+  // Submission-ready gate — subReadyDate set AND before deadline
+  const subReadyHit = submitted.filter(p => {
+    if (!p.subReadyDate || !p.deadline) return false;
+    return p.subReadyDate <= p.deadline;
+  }).length;
+
+  // Stage gate % — what % of applicable checklist items are ticked per project
+  const stageGateScores = submitted.map(p => {
+    const cl = p.checklist || {};
+    const applicable = CHECKLIST_TEMPLATE.filter(item => {
+      const value = parseFloat(p.value) || 0;
+      if (item.largeOnly && value < 50000) return false;
+      if (item.specialtyOnly && p.priority !== 'specialty') return false;
+      if (item.mediumLarge && value < 10000) return false;
+      if (item.smallOnly && value >= 10000) return false;
+      return true;
+    });
+    if (applicable.length === 0) return 100;
+    const done = applicable.filter(item => cl[item.id] === true || cl[item.id] === 'true').length;
+    return Math.round((done / applicable.length) * 100);
+  });
+  const avgStageGate = Math.round(stageGateScores.reduce((a,b) => a+b, 0) / stageGateScores.length);
+
+  return {
+    numEst: total,
+    stageGate: avgStageGate,
+    peerReview: Math.round((peerDone / total) * 100),
+    freeze: Math.round((freezeHit / total) * 100),
+    subReady: Math.round((subReadyHit / total) * 100),
+    defects: '',  // always manual — can't automate
+    auto: true,
+    projectNames: submitted.map(p => p.name).join(', ')
+  };
+}
+
+function addScorecardWeek() {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(today);
+  monday.setDate(diff);
+  const weekOf = monday.toISOString().substring(0, 10);
+
+  if (scorecardData.find(w => w.weekOf === weekOf)) {
+    showToast('Week already logged — edit the existing row');
+    return;
+  }
+
+  const auto = autoCalculateWeek(weekOf);
+  scorecardData.unshift({
+    weekOf,
+    numEst: auto.numEst !== undefined ? String(auto.numEst) : '',
+    stageGate: auto.stageGate !== '' ? String(auto.stageGate) : '',
+    peerReview: auto.peerReview !== '' ? String(auto.peerReview) : '',
+    freeze: auto.freeze !== '' ? String(auto.freeze) : '',
+    subReady: auto.subReady !== '' ? String(auto.subReady) : '',
+    defects: '',
+    notes: auto.projectNames ? 'Auto: ' + auto.projectNames : '',
+    autoCalc: true
+  });
+  const newRow = scorecardData[0];
+  saveScorecardRow(newRow);
+  renderScorecard();
+
+  if (auto.numEst === 0) {
+    showToast('Week logged — no submitted projects found this week. Fill in manually if needed.');
+  } else {
+    showToast(`✓ Auto-calculated from ${auto.numEst} submitted project${auto.numEst > 1 ? 's' : ''} — add defect count + notes`);
+  }
+}
+
+function deleteScorecardWeek(idx) {
+  const row = scorecardData[idx];
+  if (!row) return;
+  deleteScorecardRowRemote(row.weekOf);
+  scorecardData.splice(idx, 1);
+  renderScorecard();
+}
+
+function updateScorecardField(idx, field, val) {
+  if (scorecardData[idx]) {
+    scorecardData[idx][field] = val;
+    saveScorecardRow(scorecardData[idx]);
+  }
+}
+
+function scoreClass(val, target) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return '';
+  if (n >= target) return 'score-good';
+  if (n >= target * 0.8) return 'score-warn';
+  return 'score-bad';
+}
+
+function renderScorecard() {
+  const tbody = document.getElementById('scorecard-body');
+  const empty = document.getElementById('scorecard-empty');
+  if (!tbody) return;
+  if (scorecardData.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  tbody.innerHTML = scorecardData.map((w, i) => `
+    <tr class="scorecard-row">
+      <td style="white-space:nowrap">
+        <div style="font-weight:600;color:#fff;font-size:12px">${w.weekOf}</div>
+        ${w.autoCalc ? '<div style="font-size:9px;color:var(--accent3);font-family:var(--display);text-transform:uppercase;letter-spacing:1px;margin-top:2px">⚡ Auto</div>' : ''}
+      </td>
+      <td style="color:#fff;text-align:center;font-size:13px;font-weight:600">${w.numEst||'—'}</td>
+      <td><div style="display:flex;align-items:center;gap:3px"><input class="scorecard-input ${scoreClass(w.stageGate,95)}" style="width:46px;text-align:center" value="${w.stageGate||''}" onchange="updateScorecardField(${i},'stageGate',this.value)" placeholder="—"><span style="color:var(--muted);font-size:11px">%</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:3px"><input class="scorecard-input ${scoreClass(w.peerReview,100)}" style="width:46px;text-align:center" value="${w.peerReview||''}" onchange="updateScorecardField(${i},'peerReview',this.value)" placeholder="—"><span style="color:var(--muted);font-size:11px">%</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:3px"><input class="scorecard-input ${scoreClass(w.freeze,90)}" style="width:46px;text-align:center" value="${w.freeze||''}" onchange="updateScorecardField(${i},'freeze',this.value)" placeholder="—"><span style="color:var(--muted);font-size:11px">%</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:3px"><input class="scorecard-input ${scoreClass(w.subReady,90)}" style="width:46px;text-align:center" value="${w.subReady||''}" onchange="updateScorecardField(${i},'subReady',this.value)" placeholder="—"><span style="color:var(--muted);font-size:11px">%</span></div></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:4px">
+          <input class="scorecard-input" style="width:40px;text-align:center;border-color:${!w.defects && w.defects!=='0' ? 'var(--warn)' : w.defects==='0' ? 'var(--accent3)' : 'var(--danger)'};color:${w.defects==='0'?'var(--accent3)':w.defects?'var(--danger)':'var(--warn)'}" value="${w.defects||''}" onchange="updateScorecardField(${i},'defects',this.value)" placeholder="?">
+          ${!w.defects && w.defects!=='0' ? '<span title="Enter defect count manually" style="color:var(--warn);font-size:11px">✎</span>' : ''}
+        </div>
+      </td>
+      <td><input class="scorecard-input" style="width:160px" value="${w.notes||''}" onchange="updateScorecardField(${i},'notes',this.value)" placeholder="Notes..."></td>
+      <td><button onclick="deleteScorecardWeek(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">✕</button></td>
+    </tr>`).join('');
+}
+
+let currentBlockers = [];
+
+let currentRisks = [];
+let currentAssumptions = [];
+
+function renderLogEntries(list, containerId, type) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (list.length === 0) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:6px 0">No ${type}s logged yet.</div>`;
+    return;
+  }
+  const impactColors = { high: 'var(--danger)', medium: 'var(--warn)', low: 'var(--accent3)' };
+  const statusColors = { open: 'var(--warn)', resolved: 'var(--accent3)', escalated: 'var(--danger)' };
+  el.innerHTML = list.map((e, i) => `
+    <div class="log-entry ${type}-entry">
+      <div class="log-entry-header">
+        <span class="log-entry-num">${type === 'risk' ? '🔴' : '📝'} ${type.toUpperCase()} #${i+1}</span>
+        <button class="log-del-btn" onclick="removeLogEntry('${type}',${i})">✕</button>
+      </div>
+      <div class="log-field">
+        <label>Description</label>
+        <textarea onchange="updateLogEntry('${type}',${i},'description',this.value)" placeholder="${type === 'risk' ? 'What is the risk and why does it matter...' : 'State the assumption clearly — what are you taking as given...'}">${e.description||''}</textarea>
+      </div>
+      <div class="log-entry-row cols3">
+        <div class="log-field">
+          <label>Impact</label>
+          <select onchange="updateLogEntry('${type}',${i},'impact',this.value)" style="border-color:${impactColors[e.impact]||'var(--border)'}">
+            <option value="high" ${e.impact==='high'?'selected':''}>🔴 High</option>
+            <option value="medium" ${e.impact==='medium'?'selected':''}>🟡 Medium</option>
+            <option value="low" ${e.impact==='low'?'selected':''}>🟢 Low</option>
+          </select>
+        </div>
+        <div class="log-field">
+          <label>Status</label>
+          <select onchange="updateLogEntry('${type}',${i},'status',this.value)" style="border-color:${statusColors[e.status]||'var(--border)'}">
+            <option value="open" ${e.status==='open'?'selected':''}>⚠️ Open</option>
+            <option value="resolved" ${e.status==='resolved'?'selected':''}>✅ Resolved</option>
+            <option value="escalated" ${e.status==='escalated'?'selected':''}>🚨 Escalated</option>
+          </select>
+        </div>
+        <div class="log-field">
+          <label>Date Logged</label>
+          <input type="date" value="${e.dateLogged||''}" onchange="updateLogEntry('${type}',${i},'dateLogged',this.value)">
+        </div>
+      </div>
+      <div class="log-field">
+        <label>${type === 'risk' ? 'Mitigation / Decision Path' : 'Basis & Risk if Wrong'}</label>
+        <textarea onchange="updateLogEntry('${type}',${i},'mitigation',this.value)" placeholder="${type === 'risk' ? 'What is the plan to mitigate or the decision path if triggered...' : 'What is this assumption based on? What changes if it is wrong?'}">${e.mitigation||''}</textarea>
+      </div>
+    </div>`).join('');
+}
+
+function addRiskEntry() {
+  const today = new Date().toISOString().substring(0,10);
+  currentRisks.push({ description:'', impact:'high', status:'open', dateLogged:today, mitigation:'' });
+  renderLogEntries(currentRisks, 'risks-list', 'risk');
+  // Auto-expand section
+  const s = document.getElementById('risks-section');
+  if (s && s.style.display === 'none') toggleSection('risks-section');
+}
+
+function addAssumptionEntry() {
+  const today = new Date().toISOString().substring(0,10);
+  currentAssumptions.push({ description:'', impact:'medium', status:'open', dateLogged:today, mitigation:'' });
+  renderLogEntries(currentAssumptions, 'assumptions-list', 'assumption');
+  const s = document.getElementById('assumptions-section');
+  if (s && s.style.display === 'none') toggleSection('assumptions-section');
+}
+
+function updateLogEntry(type, idx, field, val) {
+  const list = type === 'risk' ? currentRisks : currentAssumptions;
+  if (list[idx]) {
+    list[idx][field] = val;
+    // Re-render just to update border colors on select change
+    if (field === 'impact' || field === 'status') {
+      renderLogEntries(list, type === 'risk' ? 'risks-list' : 'assumptions-list', type);
+    }
+  }
+}
+
+function removeLogEntry(type, idx) {
+  if (type === 'risk') {
+    currentRisks.splice(idx, 1);
+    renderLogEntries(currentRisks, 'risks-list', 'risk');
+  } else {
+    currentAssumptions.splice(idx, 1);
+    renderLogEntries(currentAssumptions, 'assumptions-list', 'assumption');
+  }
+}
+
+function getRisksState() { return currentRisks; }
+function getAssumptionsState() { return currentAssumptions; }
+
+function renderRisks(list) {
+  currentRisks = list ? JSON.parse(JSON.stringify(list)) : [];
+  renderLogEntries(currentRisks, 'risks-list', 'risk');
+}
+
+function renderAssumptions(list) {
+  currentAssumptions = list ? JSON.parse(JSON.stringify(list)) : [];
+  renderLogEntries(currentAssumptions, 'assumptions-list', 'assumption');
+}
+
+function renderBlockers(blockers) {
+  currentBlockers = blockers ? JSON.parse(JSON.stringify(blockers)) : [];
+  const el = document.getElementById('blocker-list');
+  if (!el) return;
+  if (currentBlockers.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0">No blockers logged for this project.</div>';
+    return;
+  }
+  el.innerHTML = currentBlockers.map((b, i) => `
+    <div class="blocker-row">
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Stage</div>
+        <select class="blocker-sel" onchange="updateBlocker(${i},'stage',this.value)">
+          ${['Client Setup — New Clients','Day 0 — Same Day','Day 1 — 24hrs','Site Visit','Estimating','Review','Submission','Submission & Presentation','Closeout & Continuity'].map(s => `<option ${b.stage===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Blocker / Risk</div>
+        <input class="blocker-input" value="${b.description||''}" onchange="updateBlocker(${i},'description',this.value)" placeholder="What is blocked and why...">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Decision Deadline</div>
+        <input type="date" class="blocker-input" value="${b.deadline||''}" onchange="updateBlocker(${i},'deadline',this.value)">
+      </div>
+      <button onclick="removeBlocker(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px">✕</button>
+    </div>`).join('');
+}
+
+function addBlocker() {
+  currentBlockers.push({ stage: 'Stage 1', description: '', deadline: '' });
+  renderBlockers(currentBlockers);
+}
+
+function updateBlocker(idx, field, val) {
+  if (currentBlockers[idx]) currentBlockers[idx][field] = val;
+}
+
+function removeBlocker(idx) {
+  currentBlockers.splice(idx, 1);
+  renderBlockers(currentBlockers);
+}
+
+function getBlockersState() { return currentBlockers; }
+
+function renderSchedule() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Week runs Sunday–Saturday
+  // Find this week's Sunday
+  const dayOfWeek = today.getDay(); // 0=Sun, 6=Sat
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - dayOfWeek);
+
+  const workDays = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    workDays.push(d);
+  }
+  // Indices: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  // Schedulable days: Mon–Fri = indices 1–5
+
+  const active = projects.filter(p => !['won','lost','submitted'].includes(p.stage));
+  const priorityScore = { specialty: 0, high: 1, medium: 2, low: 3 };
+  const sorted = [...active].sort((a, b) => {
+    if (a.deadline && b.deadline) {
+      const dd = new Date(a.deadline) - new Date(b.deadline);
+      if (dd !== 0) return dd;
+    }
+    if (a.deadline && !b.deadline) return -1;
+    if (!a.deadline && b.deadline) return 1;
+    return (priorityScore[a.priority] ?? 2) - (priorityScore[b.priority] ?? 2);
+  });
+
+  const workingHoursPerDay = 8; // 40hr week
+  const totalAvailable = workingHoursPerDay * 5;
+  const totalHours = sorted.reduce((sum, p) => sum + (parseFloat(p.hours) || 2), 0);
+  const pct = Math.min(100, Math.round((totalHours / totalAvailable) * 100));
+
+  const summaryEl = document.getElementById('schedule-summary');
+  summaryEl.innerHTML = `
+    <div class="schedule-summary-grid">
+      <div class="schedule-stat">
+        <div class="schedule-stat-label">Hours Needed</div>
+        <div class="schedule-stat-value" style="color:${totalHours > totalAvailable ? 'var(--danger)' : 'var(--accent)'}">${totalHours}h</div>
+      </div>
+      <div class="schedule-stat">
+        <div class="schedule-stat-label">Available This Week</div>
+        <div class="schedule-stat-value" style="color:var(--accent3)">${totalAvailable}h</div>
+      </div>
+      <div class="schedule-stat">
+        <div class="schedule-stat-label">Week Load</div>
+        <div class="schedule-stat-value" style="color:${pct > 100 ? 'var(--danger)' : pct > 75 ? 'var(--warn)' : 'var(--accent3)'}">${pct}%</div>
+      </div>
+    </div>
+    ${totalHours > totalAvailable ? '<div style="background:rgba(255,68,102,0.12);border:1px solid var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:16px">⚠️ More work than available hours this week. Consider talking to your manager about capacity.</div>' : ''}
+  `;
+
+  // Build day blocks for all 7 days — work only goes into Mon(1)–Fri(5)
+  const dayBlocks = workDays.map(d => ({ date: d, blocks: [], hoursUsed: 0 }));
+
+  for (const proj of sorted) {
+    const hoursNeeded = parseFloat(proj.hours) || 2;
+    let remaining = hoursNeeded;
+
+    // Find the Mon–Fri index (1–5) that matches or precedes the deadline
+    let deadlineWorkIdx = 5; // default: Friday
+    if (proj.deadline) {
+      const dl = new Date(proj.deadline + 'T00:00:00');
+      // Check Mon–Fri (indices 1–5) for the matching day
+      if (dl <= workDays[1]) {
+        deadlineWorkIdx = 1; // Monday or earlier
+      } else if (dl >= workDays[5]) {
+        deadlineWorkIdx = 5; // Friday or later
+      } else {
+        for (let i = 2; i <= 5; i++) {
+          if (dl <= workDays[i]) { deadlineWorkIdx = i; break; }
+        }
+      }
+    }
+
+    // Fill Mon–Fri slots up to deadline day (front-load for buffer)
+    for (let i = 1; i <= deadlineWorkIdx && remaining > 0; i++) {
+      const day = dayBlocks[i];
+      const available = workingHoursPerDay - day.hoursUsed;
+      if (available <= 0) continue;
+      const chunk = Math.min(remaining, available, 4);
+      day.blocks.push({ proj, hours: chunk, isPartial: remaining > chunk, overDeadline: false });
+      day.hoursUsed += chunk;
+      remaining -= chunk;
+    }
+
+    // Overflow past deadline — flag orange
+    if (remaining > 0) {
+      for (let i = deadlineWorkIdx + 1; i <= 5 && remaining > 0; i++) {
+        const day = dayBlocks[i];
+        const available = workingHoursPerDay - day.hoursUsed;
+        if (available <= 0) continue;
+        const chunk = Math.min(remaining, available, 4);
+        day.blocks.push({ proj, hours: chunk, isPartial: true, overDeadline: true });
+        day.hoursUsed += chunk;
+        remaining -= chunk;
+      }
+    }
+  }
+
+  const daysEl = document.getElementById('schedule-days');
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  daysEl.innerHTML = '<div class="schedule-days-grid">' + dayBlocks.map((day, i) => {
+    const isToday = day.date.toDateString() === new Date().toDateString();
+    const isPast = day.date < today;
+    const isWeekend = i === 0 || i === 6; // Sunday or Saturday
+    const dateLabel = day.date.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+
+    const blocksHtml = isWeekend
+      ? '<div class="schedule-empty" style="color:var(--muted)">Weekend</div>'
+      : day.blocks.length === 0
+        ? '<div class="schedule-empty" style="color:var(--muted)">Free</div>'
+        : day.blocks.map(({ proj, hours, isPartial, overDeadline }) => {
+            const timeLabel = hours === 0.5 ? '30 min' : hours === 1 ? '1 hr' : `${hours} hrs`;
+            const borderStyle = overDeadline ? 'border-color:var(--warn);' : '';
+            return `<div class="schedule-block priority-${proj.priority}" style="${borderStyle}" onclick="openProject('${proj.id}')">
+              <div class="schedule-block-name">${proj.name}${isPartial ? ' →' : ''}${overDeadline ? ' ⚠' : ''}</div>
+              <div class="schedule-block-meta">${stageLabel(proj.stage)}${proj.deadline ? ' · due ' + proj.deadline.substring(5) : ''}</div>
+              ${proj.nextAction ? `<div class="schedule-block-action">→ ${proj.nextAction.substring(0,60)}${proj.nextAction.length>60?'…':''}</div>` : ''}
+              <div class="schedule-block-time">${timeLabel}</div>
+            </div>`;
+          }).join('');
+
+    return `<div class="schedule-day-card${isToday ? ' is-today' : ''}${isPast ? ' is-past' : ''}${isWeekend ? ' is-weekend' : ''}">
+      <div class="schedule-day-header" style="${isWeekend ? 'opacity:0.5' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="schedule-day-name">${isToday ? '⚡ ' : ''}${dayNames[i]}</div>
+            <div class="schedule-day-date">${dateLabel}</div>
+          </div>
+          <div class="schedule-day-hours ${day.hoursUsed > 0 ? 'has-work' : 'no-work'}" style="text-align:right">${isWeekend ? 'Off' : day.hoursUsed > 0 ? `${day.hoursUsed}h / ${workingHoursPerDay}h` : 'Free'}</div>
+        </div>
+      </div>
+      <div class="schedule-day-body">${blocksHtml}</div>
+      ${!isWeekend ? `<button class="schedule-copy-btn" onclick="copyDayToClipboard(${i})">📋 Copy for Outlook</button>` : ''}
+    </div>`;
+  }).join('') + '</div>';
+
+  window._scheduleData = { dayBlocks, dayNames };
+}
+
+function copyDayToClipboard(dayIdx) {
+  const { dayBlocks, dayNames } = window._scheduleData || {};
+  if (!dayBlocks) return;
+  const day = dayBlocks[dayIdx];
+  const dateLabel = day.date.toLocaleDateString('en-CA', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  
+  if (day.blocks.length === 0) {
+    navigator.clipboard.writeText(`${dateLabel}\nNo tasks scheduled.`);
+    showToast('Copied to clipboard!');
+    return;
+  }
+
+  const text = day.blocks.map(({proj, hours}) => {
+    const timeEst = hours === 0.5 ? '30 min' : `${hours} hr${hours !== 1 ? 's' : ''}`;
+    return [
+      `📋 ${proj.name} — ${timeEst}`,
+      `Client: ${proj.client || '—'} | Stage: ${stageLabel(proj.stage)} | Priority: ${proj.priority.toUpperCase()}`,
+      proj.nextAction ? `Next Action: ${proj.nextAction}` : '',
+      proj.deadline ? `Quote Deadline: ${proj.deadline}` : '',
+    ].filter(Boolean).join('\n');
+  }).join('\n\n---\n\n');
+
+  navigator.clipboard.writeText(`WORK BLOCKS — ${dateLabel}\n\n${text}`);
+  showToast('Copied! Paste into an Outlook appointment.');
+}
+
+function copyWeekToClipboard() {
+  const { dayBlocks, dayNames } = window._scheduleData || {};
+  if (!dayBlocks) return;
+  
+  const text = dayBlocks.map((day, i) => {
+    const dateLabel = day.date.toLocaleDateString('en-CA', { weekday:'long', month:'short', day:'numeric' });
+    if (day.blocks.length === 0) return `${dateLabel}: No tasks`;
+    const blocks = day.blocks.map(({proj, hours}) => {
+      const timeEst = `${hours}h`;
+      return `  • ${proj.name} (${timeEst}) — ${proj.nextAction || stageLabel(proj.stage)}`;
+    }).join('\n');
+    return `${dateLabel}:\n${blocks}`;
+  }).join('\n\n');
+
+  navigator.clipboard.writeText(`ESTIMATING — WEEK SCHEDULE\n\n${text}`);
+  showToast('Full week copied! Paste anywhere in Outlook.');
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--accent3);color:#000;padding:10px 22px;border-radius:20px;font-family:var(--mono);font-size:13px;font-weight:500;z-index:999;transition:opacity 0.3s';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.style.opacity = '0', 2500);
+}
+
+// ===================== START =====================
+init();
+</script>
+</body>
+</html>
